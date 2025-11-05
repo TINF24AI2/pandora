@@ -7,8 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +40,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PandoraApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
+    val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+    )
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -44,13 +53,14 @@ fun PandoraApp() {
                 item(
                     icon = {
                         Icon(
-                            ImageVector.vectorResource(it.iconRes),
+                            ImageVector.vectorResource(if (it == currentDestination) it.selectedIconRes else it.iconRes),
                             contentDescription = it.label
                         )
                     },
                     label = { Text(it.label) },
                     selected = it == currentDestination,
-                    onClick = { currentDestination = it }
+                    onClick = { currentDestination = it },
+                    colors = myNavigationSuiteItemColors
                 )
             }
         },
@@ -70,9 +80,10 @@ fun PandoraApp() {
 enum class AppDestinations(
     val label: String,
     val iconRes: Int,
+    val selectedIconRes: Int
 ) {
-    PASSWORDS("Passwords", R.drawable.folder_24_outlined),
-    GENERATE("Generate", R.drawable.outline_build_24),
-    SETTINGS("Settings", R.drawable.outline_settings_24),
-    ACCOUNT("Account", R.drawable.outline_account_circle_24),
+    PASSWORDS("Passwords", R.drawable.folder_24_outlined, R.drawable.folder_24_filled),
+    GENERATE("Generate", R.drawable.password_24_outline, R.drawable.password_24_outline),
+    SETTINGS("Settings", R.drawable.settings_24_outline, R.drawable.settings_24_filled),
+    ACCOUNT("Account", R.drawable.account_circle_24_outline, R.drawable.account_circle_24_filled),
 }
