@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -45,7 +46,7 @@ fun PandoraApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
-            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            unselectedIconColor = MaterialTheme.colorScheme.primaryContainer,
             selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
     )
@@ -68,7 +69,7 @@ fun PandoraApp() {
             }
         },
         content = {
-            Scaffold(modifier = Modifier.fillMaxSize(), floatingActionButton = {
+            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding(), floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
 
