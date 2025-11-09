@@ -7,6 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -66,7 +69,15 @@ fun PandoraApp() {
             }
         },
         content = {
-            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
+            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding(), floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+
+                    }
+                ) {
+                    Icon(Icons.Filled.Add, "Add login credentials")
+                }
+            }) { innerPadding ->
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> Passwords(Modifier.padding(innerPadding))
                     AppDestinations.GENERATE -> Generate(Modifier.padding(innerPadding))
