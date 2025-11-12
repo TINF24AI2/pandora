@@ -3,8 +3,6 @@ package app.pandorapass.pandora
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,7 +57,7 @@ fun PandoraApp(navController: NavHostController) {
 
                     }
                 ) {
-                    Icon(Icons.Filled.Add, "Add login credentials")
+                    Icon(ImageVector.vectorResource(R.drawable.plus_24_outlined), "Add login credentials")
                 }
             }) { innerPadding ->
                 when (currentDestination) {
