@@ -101,7 +101,7 @@ fun Login(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    text = "Welcome $username!",
+                    text = "Welcome"+ (username ?: "") +"!",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
