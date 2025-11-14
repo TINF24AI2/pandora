@@ -146,14 +146,16 @@ fun Login(navController: NavHostController) {
                 //Login Button + route to main App
                 Button(
                     onClick = {
-                        if (!username.isNullOrBlank()) {
+                        val name = username
+                        if (!name.isNullOrBlank()) {
                             scope.launch {
                                 context.dataStore.edit { prefs ->
-                                    prefs[usernameKey] = username!!
+                                    prefs[usernameKey] = name
                                 }
+                                navController.navigate("pandora")
                             }
-                            navController.navigate("pandora")
                         }
+
                     },
                     modifier = Modifier
                         .fillMaxWidth()
