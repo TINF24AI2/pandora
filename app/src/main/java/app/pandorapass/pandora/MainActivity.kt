@@ -1,6 +1,5 @@
 package app.pandorapass.pandora
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,31 +21,22 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import app.pandorapass.pandora.ui.theme.PandoraTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.datastore.preferences.core.*
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-
-val Context.dataStore by preferencesDataStore("user_prefs")
+import app.pandorapass.pandora.ui.theme.PandoraTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,18 +60,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Login(navController: NavHostController) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val usernameKey = stringPreferencesKey("username")
-    var username by remember { mutableStateOf<String?>(null) }
     var password by remember { mutableStateOf("") }
-    var showUsernameField by remember { mutableStateOf<Boolean?>(null) }
-
-    LaunchedEffect(Unit) {
-        val prefs = context.dataStore.data.first()
-        username = prefs[usernameKey]
-        showUsernameField = username == null
-    }
 
     Scaffold(
         modifier = Modifier
@@ -101,32 +80,12 @@ fun Login(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    text = "Welcome, " + (username ?: "") + "!",
+                    text = "Welcome!",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 )
-                if (showUsernameField ?: false) {
-                    OutlinedTextField(
-                        value = username ?: "",
-                        onValueChange = { username = it },
-                        label = { Text("Username") },
-                        placeholder = { Text("Enter your username") },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(4.dp, RoundedCornerShape(8.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surface,
-                                RoundedCornerShape(8.dp)
-                            ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        )
-                    )
-                }
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -146,16 +105,7 @@ fun Login(navController: NavHostController) {
                 //Login Button + route to main App
                 Button(
                     onClick = {
-                        val name = username
-                        if (!name.isNullOrBlank()) {
-                            scope.launch {
-                                context.dataStore.edit { prefs ->
-                                    prefs[usernameKey] = name
-                                }
-                                navController.navigate("pandora")
-                            }
-                        }
-
+                        navController.navigate("pandora")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -163,7 +113,7 @@ fun Login(navController: NavHostController) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Save and Continue",
+                        text = "Login",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         )
