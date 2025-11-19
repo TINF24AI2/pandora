@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteColors
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
@@ -51,7 +50,7 @@ fun PandoraApp(navController: NavHostController) {
         content = {
             Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
-                    AppDestinations.PASSWORDS -> Passwords(Modifier.padding(innerPadding))
+                    AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding))
                     AppDestinations.GENERATE -> Generate(Modifier.padding(innerPadding))
                     AppDestinations.SETTINGS -> Settings(Modifier.padding(innerPadding))
                     AppDestinations.ACCOUNT -> Account(Modifier.padding(innerPadding), navController)
