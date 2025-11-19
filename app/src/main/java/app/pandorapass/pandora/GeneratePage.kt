@@ -4,7 +4,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+
 @Composable
-fun Settings(modifier: Modifier) {
-    Text("Settings", modifier = modifier)
+fun GeneratePage(modifier: Modifier) {
+    Text("Generate", modifier = modifier)
 }

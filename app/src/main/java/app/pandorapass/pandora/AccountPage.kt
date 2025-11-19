@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 
 @Composable
-fun Account(modifier: Modifier, navController: NavHostController) {
+fun AccountPage(modifier: Modifier, navController: NavHostController) {
 
     Text("Account", modifier = modifier)
 
