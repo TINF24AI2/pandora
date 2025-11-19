@@ -51,7 +51,7 @@ fun PandoraApp(navController: NavHostController) {
         content = {
             Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
-                    AppDestinations.PASSWORDS -> Passwords(Modifier.padding(innerPadding))
+                    AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding))
                     AppDestinations.GENERATE -> Generate(Modifier.padding(innerPadding))
                     AppDestinations.SETTINGS -> Settings(Modifier.padding(innerPadding))
                     AppDestinations.ACCOUNT -> Account(Modifier.padding(innerPadding), navController)
