@@ -4,11 +4,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteColors
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
@@ -21,15 +23,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavHostController
 
-
-
 @Composable
 fun PandoraApp(navController: NavHostController) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
-            unselectedIconColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            unselectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
     )
 
@@ -55,7 +55,7 @@ fun PandoraApp(navController: NavHostController) {
                 FloatingActionButton(
                     onClick = {
 
-                    }
+                    },
                 ) {
                     Icon(ImageVector.vectorResource(R.drawable.plus_24_outlined), "Add login credentials")
                 }
