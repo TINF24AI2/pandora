@@ -6,6 +6,6 @@ import androidx.compose.ui.Modifier
 
 
 @Composable
-fun Generate(modifier: Modifier) {
+fun GeneratePage(modifier: Modifier) {
     Text("Generate", modifier = modifier)
 }

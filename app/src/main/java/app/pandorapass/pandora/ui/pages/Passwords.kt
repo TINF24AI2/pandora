@@ -2,22 +2,19 @@ package app.pandorapass.pandora.ui.pages
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -63,24 +60,27 @@ fun PasswordPage(modifier: Modifier) {
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
-            onClick = {
-                addPassword = true
-            }
+            onClick = { addPassword = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Icon(
                 ImageVector.vectorResource(R.drawable.plus_24_outlined),
-                "Add login credentials",
-                tint = MaterialTheme.colorScheme.onPrimary
+                "Add login credentials"
             )
         }
     }) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SearchBar(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = query,
@@ -96,9 +96,11 @@ fun PasswordPage(modifier: Modifier) {
                 expanded = false,
                 onExpandedChange = {}
             ) {} //Lazy Column outside of search bar to not restrict scrolling
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(filteredPasswords) { password ->
-                    PasswordItem(Modifier.padding(top = 10.dp), password, { showPasswordEntry = true; shownPassword = password })
+                    PasswordItem(password =  password, showEntry = { showPasswordEntry = true; shownPassword = password })
                 }
             }
         }
@@ -121,7 +123,7 @@ fun CopyableTextField(
     text: String
 ) {
     val clipboard: ClipboardManager = LocalContext.current.getSystemService(ClipboardManager::class.java)
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label)
         OutlinedTextField(
             value = text,
@@ -154,7 +156,9 @@ fun ShowEntry(password: Password?, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         modifier = Modifier.fillMaxSize(),
         sheetState = rememberModalBottomSheetState(),
-        sheetGesturesEnabled = false
+        sheetGesturesEnabled = false,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        tonalElevation = 6.dp
     ) {
         Box(
             modifier = Modifier
@@ -162,14 +166,16 @@ fun ShowEntry(password: Password?, onDismiss: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                Text("Password Details")
                     CopyableTextField(label = "Username", text = curPassword.username)
                     CopyableTextField(label = "Password", text = curPassword.password)
                     CopyableTextField(label = "URL", text = curPassword.url)
-
             }
         }
     }
@@ -186,7 +192,9 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
         onDismissRequest = onDismiss,
         modifier = Modifier.fillMaxSize(),
         sheetState = rememberModalBottomSheetState(),
-        sheetGesturesEnabled = false
+        sheetGesturesEnabled = false,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        tonalElevation = 6.dp
     ) {
         Box(
             modifier = Modifier
@@ -199,54 +207,40 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 val width = Modifier.fillMaxWidth()
+                Text("Add Password")
                 OutlinedTextField(
                     modifier = width,
                     value = newUsername,
                     onValueChange = { newUsername = it },
-                    placeholder = { Text("Username") },
+                    label = { Text("Username") },
                     singleLine = true
                 )
-                Row(
-                    modifier = width.height(IntrinsicSize.Min),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
-                    OutlinedTextField(
-                        value = newPassword,
-                        onValueChange = { newPassword = it },
-                        visualTransformation = if (showPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                        placeholder = { Text("Password") },
-                        singleLine = true,
-                        modifier = Modifier
-                            .weight(0.8f)
-                            .fillMaxHeight()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(0.2f)
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(12.dp)
+                OutlinedTextField(
+                    modifier = width,
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = { Text("Password") },
+                    visualTransformation =
+                        if (!showPassword) PasswordVisualTransformation()
+                        else VisualTransformation.None,
+                    trailingIcon = {
+                        IconButton(onClick = { showPassword = !showPassword }) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(
+                                    if (showPassword) R.drawable.eye_slash_24_outlined
+                                    else R.drawable.eye_24_outlined
+                                ),
+                                contentDescription = null
                             )
-                            .clickable { showPassword = !showPassword },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            ImageVector.vectorResource(
-                                if (showPassword) R.drawable.eye_24_outlined
-                                else R.drawable.eye_slash_24_outlined
-                            ),
-                            "show Password",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
+                        }
+                    },
+                    singleLine = true
+                )
                 OutlinedTextField(
                     modifier = width,
                     value = newURL,
                     onValueChange = { newURL = it },
-                    placeholder = { Text("URL") },
+                    label = { Text("URL") },
                     singleLine = true
                 )
                 Button(
@@ -265,10 +259,16 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
 }
 
 @Composable
-fun PasswordItem(modifier: Modifier, password: Password, showEntry: () -> Unit) {
-    Box(
-        modifier = modifier.fillMaxWidth().clickable { showEntry() }) {
-        Column(modifier = modifier) {
+fun PasswordItem(modifier: Modifier = Modifier, password: Password, showEntry: () -> Unit) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { showEntry() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
             Text(password.url)
             Text(password.username)
         }

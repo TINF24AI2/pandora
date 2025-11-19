@@ -5,6 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun Settings(modifier: Modifier) {
+fun SettingsPage(modifier: Modifier) {
     Text("Settings", modifier = modifier)
 }

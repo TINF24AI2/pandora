@@ -52,9 +52,9 @@ fun PandoraApp(navController: NavHostController) {
             Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding))
-                    AppDestinations.GENERATE -> Generate(Modifier.padding(innerPadding))
-                    AppDestinations.SETTINGS -> Settings(Modifier.padding(innerPadding))
-                    AppDestinations.ACCOUNT -> Account(Modifier.padding(innerPadding), navController)
+                    AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
+                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding))
+                    AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), navController)
                 }
             }
         }
