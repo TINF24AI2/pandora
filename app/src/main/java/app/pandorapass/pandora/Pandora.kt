@@ -3,7 +3,6 @@ package app.pandorapass.pandora
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -20,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavHostController
-
-
 
 @Composable
 fun PandoraApp(navController: NavHostController) {
@@ -51,15 +48,7 @@ fun PandoraApp(navController: NavHostController) {
             }
         },
         content = {
-            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding(), floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-
-                    }
-                ) {
-                    Icon(ImageVector.vectorResource(R.drawable.plus_24_outlined), "Add login credentials")
-                }
-            }) { innerPadding ->
+            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> Passwords(Modifier.padding(innerPadding))
                     AppDestinations.GENERATE -> Generate(Modifier.padding(innerPadding))
