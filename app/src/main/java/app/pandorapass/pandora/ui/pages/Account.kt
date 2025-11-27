@@ -1,4 +1,4 @@
-package app.pandorapass.pandora
+package app.pandorapass.pandora.ui.pages
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text

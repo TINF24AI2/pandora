@@ -1,5 +1,6 @@
-package app.pandorapass.pandora
+package app.pandorapass.pandora.ui.pages
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,17 +34,27 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import app.pandorapass.pandora.logic.models.FileVaultRepository
+import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
+import app.pandorapass.pandora.logic.services.impl.VaultServiceImpl
 import app.pandorapass.pandora.ui.theme.PandoraTheme
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 
 class MainActivity : ComponentActivity() {
+
+    @SuppressLint("ViewModelConstructorInComposable")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             PandoraTheme {
+                val repository = FileVaultRepository(applicationContext)
+                val cryptoService = CryptoServiceImpl()
+                val vaultService = VaultServiceImpl(cryptoService, repository)
+                val viewModel = TestVaultViewModel(vaultService)
+                TestVaultScreen(viewModel = viewModel)
+/*
                 val navController = rememberNavController()
                 NavHost(
                     navController,
@@ -53,6 +64,7 @@ class MainActivity : ComponentActivity() {
                     composable("login") { Login(navController) }
                     composable("pandora") { PandoraApp(navController) }
                 }
+*/
             }
         }
     }

@@ -1,4 +1,4 @@
-package app.pandorapass.pandora
+package app.pandorapass.pandora.ui.pages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import app.pandorapass.pandora.R
 
 data class Password(val url: String, val username: String, val password: String)
 
@@ -61,7 +62,11 @@ fun Passwords(modifier: Modifier) {
                 addPassword = true
             }
         ) {
-            Icon(ImageVector.vectorResource(R.drawable.plus_24_outlined), "Add login credentials",  tint = MaterialTheme.colorScheme.onPrimary)
+            Icon(
+                ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                "Add login credentials",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }) { innerPadding ->
         Column(
@@ -94,8 +99,9 @@ fun Passwords(modifier: Modifier) {
         }
     }
     if (addPassword) {
-        AddPassword({ addPassword = false },
-            { newPassword: Password -> passwords = passwords + newPassword})
+        AddPassword(
+            { addPassword = false },
+            { newPassword: Password -> passwords = passwords + newPassword })
     }
 }
 
@@ -134,28 +140,37 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
                 Row(
                     modifier = width.height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
                         visualTransformation = if (showPassword) PasswordVisualTransformation() else VisualTransformation.None,
                         placeholder = { Text("Password") },
                         singleLine = true,
-                        modifier = Modifier.weight(0.8f).fillMaxHeight()
+                        modifier = Modifier
+                            .weight(0.8f)
+                            .fillMaxHeight()
                     )
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .weight(0.2f)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(12.dp)
+                            )
                             .clickable { showPassword = !showPassword },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(ImageVector.vectorResource(
-                            if (showPassword) R.drawable.eye_24_outlined
-                            else R.drawable.eye_slash_24_outlined),
+                        Icon(
+                            ImageVector.vectorResource(
+                                if (showPassword) R.drawable.eye_24_outlined
+                                else R.drawable.eye_slash_24_outlined
+                            ),
                             "show Password",
-                            tint = MaterialTheme.colorScheme.onPrimary)
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
                 OutlinedTextField(
@@ -165,7 +180,13 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
                     placeholder = { Text("URL") },
                     singleLine = true
                 )
-                Button(modifier = width, onClick = { if (newURL.isNotBlank() and newUsername.isNotBlank() and newPassword.isNotBlank()) addNewPassword(Password(newURL, newUsername, newPassword)) }) {
+                Button(
+                    modifier = width,
+                    onClick = {
+                        if (newURL.isNotBlank() and newUsername.isNotBlank() and newPassword.isNotBlank()) addNewPassword(
+                            Password(newURL, newUsername, newPassword)
+                        )
+                    }) {
                     Text("Add Password")
                 }
             }
