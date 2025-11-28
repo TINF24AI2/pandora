@@ -51,7 +51,7 @@ fun PandoraApp(viewModel: TestVaultViewModel) {
         content = {
             Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
-                    AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding))
+                    AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel)
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
                     AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding))
                     AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), viewModel)
