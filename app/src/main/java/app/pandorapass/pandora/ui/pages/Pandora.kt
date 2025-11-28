@@ -20,9 +20,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavHostController
 import app.pandorapass.pandora.R
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 
 @Composable
-fun PandoraApp(navController: NavHostController) {
+fun PandoraApp(viewModel: TestVaultViewModel) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -54,7 +55,7 @@ fun PandoraApp(navController: NavHostController) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding))
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
                     AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding))
-                    AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), navController)
+                    AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), viewModel)
                 }
             }
         }
