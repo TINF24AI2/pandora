@@ -38,10 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import app.pandorapass.pandora.logic.models.FileVaultRepository
 import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
 import app.pandorapass.pandora.logic.services.impl.VaultServiceImpl
