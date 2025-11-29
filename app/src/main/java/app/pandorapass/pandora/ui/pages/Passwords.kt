@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -153,6 +155,50 @@ fun CopyableTextField(
         )
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CopyablePasswordField(
+    modifier: Modifier = Modifier,
+    label: String,
+    text: String
+) {
+    val clipboard: ClipboardManager =
+        LocalContext.current.getSystemService(ClipboardManager::class.java)
+    var visible by rememberSaveable { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label)
+        OutlinedTextField(
+            value = text,
+            onValueChange = {},
+            modifier = modifier.fillMaxWidth(),
+            readOnly = true,
+            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                Row {
+                    IconButton(onClick = { visible = !visible }) {
+                        if (visible) Icon(imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined), contentDescription = "")
+                        else Icon(ImageVector.vectorResource(R.drawable.eye_24_outlined), contentDescription = "")
+                    }
+                    IconButton(onClick = {
+                        clipboard.setPrimaryClip(
+                            ClipData.newPlainText(label, text)
+                        )
+                    }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(
+                                R.drawable.square_2_stack_24_outlined
+                            ),
+                            contentDescription = "Copy"
+                        )
+                    }
+                }
+            },
+            singleLine = true
+        )
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,7 +230,7 @@ fun ShowEntry(viewModel: TestVaultViewModel, id: String, onDismiss: () -> Unit) 
             ) {
                 Text(loginEntry.title)
                 CopyableTextField(label = "Username", text = loginEntry.username)
-                CopyableTextField(label = "Password", text = loginEntry.password)
+                CopyablePasswordField(label = "Password", text = loginEntry.password)
                 loginEntry.urls?.forEach { url ->
                     CopyableTextField(label = "URL", text = url)
                 }
@@ -303,7 +349,7 @@ fun AddPassword(viewModel: TestVaultViewModel, onDismiss: () -> Unit) {
                 item {
                     Button(
                         modifier = width,
-                        enabled = (newURL.isNotBlank() && newUsername.isNotBlank() && newPassword.isNotBlank()),
+                        enabled = (newUsername.isNotBlank() && newPassword.isNotBlank()),
                         onClick = {
                                 viewModel.addLoginEntry(
                                     newTitle,
@@ -334,7 +380,7 @@ fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntr
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Text(entry.title)
-            Text(entry.username)
+            //Text(entry.username)
         }
     }
 }

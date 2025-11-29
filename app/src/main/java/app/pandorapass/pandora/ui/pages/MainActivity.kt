@@ -1,6 +1,5 @@
 package app.pandorapass.pandora.ui.pages
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -49,7 +48,6 @@ import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
-    @SuppressLint("ViewModelConstructorInComposable")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
