@@ -1,24 +1,25 @@
 package app.pandorapass.pandora.ui.pages
 
-import androidx.compose.foundation.background
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -28,54 +29,65 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.pandorapass.pandora.R
+import app.pandorapass.pandora.logic.models.LoginVaultEntry
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
+import java.util.Date
 
-data class Password(val url: String, val username: String, val password: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Passwords(modifier: Modifier) {
+fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
     var query: String by remember { mutableStateOf("") }
-    var passwords: List<Password> by remember { mutableStateOf(listOf()) }
+    val passwords by viewModel.vaultEntries.collectAsState()
     var addPassword by remember { mutableStateOf(false) }
+    var showPasswordEntry by remember { mutableStateOf(false) }
+    var id by remember { mutableStateOf("") }
 
-    val filteredPasswords = passwords.filter {
-        it.url.contains(query, ignoreCase = true) or
-                it.username.contains(query, ignoreCase = true)
-    }
+    val filteredPasswords: List<LoginVaultEntry> =
+        passwords.filterIsInstance<LoginVaultEntry>().filter { entry ->
+            entry.urls?.any { url -> url.contains(query, ignoreCase = true) } == true ||
+                    entry.username.contains(query, ignoreCase = true) ||
+                    entry.title.contains(query, ignoreCase = true)
+        }
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
-            onClick = {
-                addPassword = true
-            }
+            onClick = { addPassword = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Icon(
                 ImageVector.vectorResource(R.drawable.plus_24_outlined),
-                "Add login credentials",
-                tint = MaterialTheme.colorScheme.onPrimary
+                "Add login credentials"
             )
         }
     }) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SearchBar(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = query,
@@ -91,33 +103,118 @@ fun Passwords(modifier: Modifier) {
                 expanded = false,
                 onExpandedChange = {}
             ) {} //Lazy Column outside of search bar to not restrict scrolling
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(filteredPasswords) { password ->
-                    PasswordItem(Modifier.padding(top = 10.dp), password)
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(filteredPasswords) { entry ->
+                    PasswordItem(
+                        entry = entry,
+                        showEntry = { showPasswordEntry = true; id = entry.id })
                 }
             }
         }
     }
     if (addPassword) {
-        AddPassword(
-            { addPassword = false },
-            { newPassword: Password -> passwords = passwords + newPassword })
+        AddPassword(viewModel, { addPassword = false })
+    }
+    if (showPasswordEntry) {
+        ShowEntry(viewModel, id, { showPasswordEntry = false })
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
-    var newUsername by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var newURL by remember { mutableStateOf("") }
-    var showPassword by remember { mutableStateOf(false) }
+fun CopyableTextField(
+    modifier: Modifier = Modifier,
+    label: String,
+    text: String
+) {
+    val clipboard: ClipboardManager =
+        LocalContext.current.getSystemService(ClipboardManager::class.java)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label)
+        OutlinedTextField(
+            value = text,
+            onValueChange = {},
+            modifier = modifier.fillMaxWidth(),
+            readOnly = true,
+            trailingIcon = {
+                IconButton(onClick = {
+                    clipboard.setPrimaryClip(
+                        ClipData.newPlainText(label, text)
+                    )
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.square_2_stack_24_outlined),
+                        contentDescription = "Copy"
+                    )
+                }
+            },
+            singleLine = true
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CopyablePasswordField(
+    modifier: Modifier = Modifier,
+    label: String,
+    text: String
+) {
+    val clipboard: ClipboardManager =
+        LocalContext.current.getSystemService(ClipboardManager::class.java)
+    var visible by rememberSaveable { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label)
+        OutlinedTextField(
+            value = text,
+            onValueChange = {},
+            modifier = modifier.fillMaxWidth(),
+            readOnly = true,
+            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                Row {
+                    IconButton(onClick = { visible = !visible }) {
+                        if (visible) Icon(imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined), contentDescription = "")
+                        else Icon(ImageVector.vectorResource(R.drawable.eye_24_outlined), contentDescription = "")
+                    }
+                    IconButton(onClick = {
+                        clipboard.setPrimaryClip(
+                            ClipData.newPlainText(label, text)
+                        )
+                    }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(
+                                R.drawable.square_2_stack_24_outlined
+                            ),
+                            contentDescription = "Copy"
+                        )
+                    }
+                }
+            },
+            singleLine = true
+        )
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowEntry(viewModel: TestVaultViewModel, id: String, onDismiss: () -> Unit) {
+    val entries by viewModel.vaultEntries.collectAsState()
+    val loginEntry =
+        entries.filterIsInstance<LoginVaultEntry>().find { it.id == id } ?: LoginVaultEntry(
+            id, "Something went wrong...", "", "", "", null, Date(), Date()
+        )
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = Modifier.fillMaxSize(),
-        sheetState = rememberModalBottomSheetState(),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         sheetGesturesEnabled = false,
-        containerColor = Color(0, 0, 0)
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        tonalElevation = 6.dp
     ) {
         Box(
             modifier = Modifier
@@ -125,69 +222,146 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                Text(loginEntry.title)
+                CopyableTextField(label = "Username", text = loginEntry.username)
+                CopyablePasswordField(label = "Password", text = loginEntry.password)
+                loginEntry.urls?.forEach { url ->
+                    CopyableTextField(label = "URL", text = url)
+                }
+                CopyableTextField(label = "Notes", text = loginEntry.notes ?: "")
+                Button(onClick = { viewModel.deleteEntry(id); onDismiss() }) { Text("Delete") }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddPassword(viewModel: TestVaultViewModel, onDismiss: () -> Unit) {
+    var showPassword by remember { mutableStateOf(false) }
+
+    var newUsername by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var newURL by remember { mutableStateOf("") }
+    var urls by remember { mutableStateOf(listOf<String>()) }
+    var newTitle by remember { mutableStateOf("") }
+    var newNotes by remember { mutableStateOf("") }
+
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxSize(),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetGesturesEnabled = false,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        tonalElevation = 6.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 val width = Modifier.fillMaxWidth()
-                OutlinedTextField(
-                    modifier = width,
-                    value = newUsername,
-                    onValueChange = { newUsername = it },
-                    placeholder = { Text("Username") },
-                    singleLine = true
-                )
-                Row(
-                    modifier = width.height(IntrinsicSize.Min),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
+                item { Text("Create new Password") }
+                item {
                     OutlinedTextField(
+                        modifier = width,
+                        value = newTitle,
+                        onValueChange = { newTitle = it },
+                        label = { Text("Title") },
+                        singleLine = true
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        modifier = width,
+                        value = newUsername,
+                        onValueChange = { newUsername = it },
+                        label = { Text("Username") },
+                        singleLine = true
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        modifier = width,
                         value = newPassword,
                         onValueChange = { newPassword = it },
-                        visualTransformation = if (showPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                        placeholder = { Text("Password") },
-                        singleLine = true,
-                        modifier = Modifier
-                            .weight(0.8f)
-                            .fillMaxHeight()
+                        label = { Text("Password") },
+                        visualTransformation =
+                            if (!showPassword) PasswordVisualTransformation()
+                            else VisualTransformation.None,
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(
+                                        if (showPassword) R.drawable.eye_slash_24_outlined
+                                        else R.drawable.eye_24_outlined
+                                    ),
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        singleLine = true
                     )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(0.2f)
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(12.dp)
-                            )
-                            .clickable { showPassword = !showPassword },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            ImageVector.vectorResource(
-                                if (showPassword) R.drawable.eye_24_outlined
-                                else R.drawable.eye_slash_24_outlined
-                            ),
-                            "show Password",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
                 }
-                OutlinedTextField(
-                    modifier = width,
-                    value = newURL,
-                    onValueChange = { newURL = it },
-                    placeholder = { Text("URL") },
-                    singleLine = true
-                )
-                Button(
-                    modifier = width,
-                    onClick = {
-                        if (newURL.isNotBlank() and newUsername.isNotBlank() and newPassword.isNotBlank()) addNewPassword(
-                            Password(newURL, newUsername, newPassword)
-                        )
-                    }) {
-                    Text("Add Password")
+                items(urls) { url ->
+                    Text(url)
+                }
+                item {
+                    OutlinedTextField(
+                        modifier = width,
+                        value = newURL,
+                        onValueChange = { newURL = it },
+                        label = { Text("URL") },
+                        trailingIcon = {
+                            IconButton(onClick = { urls = urls + newURL; newURL = "" }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        singleLine = true
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        modifier = width,
+                        value = newNotes,
+                        onValueChange = { newNotes = it },
+                        label = { Text("Notes") },
+                        singleLine = true
+                    )
+                }
+                item {
+                    Button(
+                        modifier = width,
+                        enabled = (newUsername.isNotBlank() && newPassword.isNotBlank()),
+                        onClick = {
+                                viewModel.addLoginEntry(
+                                    newTitle,
+                                    newUsername,
+                                    newPassword,
+                                    newNotes,
+                                    (urls + newURL).filter { it.isNotBlank() }.distinct()
+                                )
+                            onDismiss()
+                        }) {
+                        Text("Add Password")
+                    }
                 }
             }
         }
@@ -195,9 +369,18 @@ fun AddPassword(onDismiss: () -> Unit, addNewPassword: (Password) -> Unit) {
 }
 
 @Composable
-fun PasswordItem(modifier: Modifier, password: Password) {
-    Column(modifier = modifier) {
-        Text(password.url)
-        Text(password.username)
+fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntry: () -> Unit) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { showEntry() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Text(entry.title)
+            //Text(entry.username)
+        }
     }
 }

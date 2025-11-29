@@ -4,16 +4,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 
 @Composable
-fun Account(modifier: Modifier, navController: NavHostController) {
+fun AccountPage(modifier: Modifier, viewModel: TestVaultViewModel) {
 
     Text("Account", modifier = modifier)
 
     Button(
         onClick = {
-            navController.navigate("login")
+            viewModel.lockVault()
         },
         content = { Text("Logout") }
     )

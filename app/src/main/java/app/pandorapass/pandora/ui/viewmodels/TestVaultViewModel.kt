@@ -29,7 +29,7 @@ class TestVaultViewModel(
     val error: StateFlow<String?> = _error.asStateFlow()
 
     val vaultEntries: StateFlow<List<VaultEntry>> = vaultService.entries
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         checkVaultStatus()
@@ -74,15 +74,15 @@ class TestVaultViewModel(
         _appState.value = AppState.LOCKED
     }
 
-    fun addSampleEntry(title: String, username: String, secret: String) {
+    fun addLoginEntry(title: String, username: String, password: String, notes: String, urls: List<String>) {
         viewModelScope.launch {
             val newEntry = LoginVaultEntry(
                 id = UUID.randomUUID().toString(),
                 title = title,
                 username = username,
-                password = secret,
-                notes = "",
-                urls = listOf("https://example.com"),
+                password = password,
+                notes = notes,
+                urls = urls,
                 createdAt = Date(),
                 updatedAt = Date()
             )
