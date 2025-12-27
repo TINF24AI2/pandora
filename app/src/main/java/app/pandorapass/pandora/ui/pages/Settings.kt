@@ -54,13 +54,13 @@ fun SettingsPage(modifier: Modifier = Modifier) {
             item {
                 SettingsGroup(title = "Unlock") {
                     SettingsSwitchItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.finger_print_24_filled),
                         title = "Unlock with Biometrics",
                         checked = unlockWithBio,
                         onCheckedChange = { unlockWithBio = it }
                     )
                     SettingsSwitchItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined), //TODO
                         title = "Unlock with PIN",
                         checked = unlockWithPin,
                         isLastItem = true,
@@ -72,14 +72,14 @@ fun SettingsPage(modifier: Modifier = Modifier) {
             item {
                 SettingsGroup(title = "Appearance") {
                     SettingsSwitchItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(if (isDarkMode) R.drawable.moon_24_outlined else R.drawable.sun_24_outlined),
                         title = "Theme",
-                        subtitle = "Light theme",
+                        subtitle = if (isDarkMode) "Dark Theme" else "Light Theme",
                         checked = isDarkMode,
                         onCheckedChange = { isDarkMode = it }
                     )
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.language_24_outlined),
                         title = "Language",
                         subtitle = "English",
                         isLastItem = true,
@@ -92,25 +92,25 @@ fun SettingsPage(modifier: Modifier = Modifier) {
             item {
                 SettingsGroup(title = "Security") {
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Automatically lock after...",
                         subtitle = "15 Minutes",
                         onClick = { /* TODO: Handle Change Password click */ }
                     )
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.clipboard_24_outlined),
                         title = "Clear clipboard",
                         subtitle = "Never",
                         onClick = { /* TODO: Handle About click */ }
                     )
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Lock now",
                         withTrailingIcon = false,
                         onClick = { /* TODO: Handle About click */ }
                     )
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                        icon = ImageVector.vectorResource(R.drawable.arrow_left_end_on_rectangle_24_outlined),
                         title = "Log out",
                         withTrailingIcon = false,
                         isLastItem = true,
