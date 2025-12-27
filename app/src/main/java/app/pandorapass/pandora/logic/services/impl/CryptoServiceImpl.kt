@@ -23,7 +23,7 @@ class CryptoServiceImpl : CryptoService {
         return ByteArray(16).apply { secureRandom.nextBytes(this) }
     }
 
-    override fun deriveKeyAndUnlock(password: CharArray, salt: ByteArray): SecretKeySpec {
+    override fun deriveKeyFromPassword(password: CharArray, salt: ByteArray): SecretKeySpec {
         val result = argon2.hash(
             mode = Argon2Mode.ARGON2_ID,
             password = password.toByteArray(),

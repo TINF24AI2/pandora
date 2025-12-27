@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 import kotlinx.serialization.json.Json
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Implementation of the vault service.
@@ -25,15 +26,27 @@ class VaultServiceImpl(
     override suspend fun createNewVault(masterPassword: CharArray) {
         val newSalt = cryptoService.generateRandomSalt()
 
-        cryptoService.deriveKeyAndUnlock(masterPassword, newSalt)
+        cryptoService.deriveKeyFromPassword(masterPassword, newSalt)
 
         saveVaultToDisk()
     }
 
-    override suspend fun unlock(masterPassword: CharArray) {
+    override suspend fun unlockWithPassword(masterPassword: CharArray) {
         val encryptedFile = repository.load() ?: throw IllegalStateException("No vault found")
 
-        cryptoService.deriveKeyAndUnlock(masterPassword, encryptedFile.salt)
+        cryptoService.deriveKeyFromPassword(masterPassword, encryptedFile.salt)
+
+        val jsonBytes = cryptoService.decrypt(encryptedFile.encryptedData, encryptedFile.iv)
+        val jsonString = String(jsonBytes, Charsets.UTF_8)
+
+        entries.value = Json.decodeFromString<MutableList<VaultEntry>>(jsonString)
+    }
+
+    override suspend fun unlockWithKey(masterKey: ByteArray) {
+        val encryptedFile = repository.load() ?: throw IllegalStateException("No vault found")
+
+        VaultSession.currentKey = SecretKeySpec(masterKey, "AES")
+        VaultSession.currentSalt = encryptedFile.salt
 
         val jsonBytes = cryptoService.decrypt(encryptedFile.encryptedData, encryptedFile.iv)
         val jsonString = String(jsonBytes, Charsets.UTF_8)

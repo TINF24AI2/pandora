@@ -1,5 +1,6 @@
 package app.pandorapass.pandora.ui.pages
 
+import SettingsPage
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -18,11 +19,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import app.pandorapass.pandora.R
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 
 @Composable
 fun PandoraApp(viewModel: TestVaultViewModel) {
+    val settingsViewModel: SettingsViewModel = viewModel()
+
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -53,7 +58,7 @@ fun PandoraApp(viewModel: TestVaultViewModel) {
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel)
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
-                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding))
+                    AppDestinations.SETTINGS -> SettingsPage(settingsViewModel)
                     AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), viewModel)
                 }
             }

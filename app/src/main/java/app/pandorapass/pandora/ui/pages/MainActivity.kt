@@ -1,7 +1,6 @@
 package app.pandorapass.pandora.ui.pages
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -32,12 +31,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.pandorapass.pandora.PandoraApplication
+import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import app.pandorapass.pandora.logic.models.FileVaultRepository
 import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
 import app.pandorapass.pandora.logic.services.impl.VaultServiceImpl
@@ -46,7 +49,7 @@ import app.pandorapass.pandora.ui.viewmodels.AppState
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,14 +57,29 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PandoraTheme {
+                val context = LocalContext.current
                 val repository = FileVaultRepository(applicationContext)
                 val cryptoService = CryptoServiceImpl()
                 val vaultService = VaultServiceImpl(cryptoService, repository)
+                val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper
 
                 val factory = TestVaultViewModelFactory(vaultService)
                 val viewModel: TestVaultViewModel = viewModel(factory = factory)
                 val appState by viewModel.appState.collectAsState()
                 val error by viewModel.error.collectAsState()
+
+                val biometricStorage = BiometricTokenStorage(context)
+                if (biometricStorage.isBiometricEnabled() && appState == AppState.LOCKED) {
+                    biometricCryptoHelper.showBiometricUnlock(
+                        activity = this,
+                        application = application as PandoraApplication,
+                        onSuccess = { decryptedMasterKey ->
+                            run {
+                                viewModel.unlockVaultWithKey(decryptedMasterKey)
+                            }
+                        }
+                    )
+                }
 
                 if (error != null) {
                     Text(
@@ -84,7 +102,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     AppState.LOCKED -> Login(
-                        onSubmit = { viewModel.unlockVault(it) }
+                        onSubmit = { viewModel.unlockVaultWithPassword(it) }
                     )
 
                     AppState.UNLOCKED -> PandoraApp(viewModel)

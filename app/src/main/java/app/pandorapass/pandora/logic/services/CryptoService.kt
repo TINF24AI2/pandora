@@ -24,7 +24,7 @@ interface CryptoService {
      * @param salt The salt to use for key derivation.
      * @return The derived key.
      */
-    fun deriveKeyAndUnlock(
+    fun deriveKeyFromPassword(
         password: CharArray,
         salt: ByteArray
     ): SecretKey

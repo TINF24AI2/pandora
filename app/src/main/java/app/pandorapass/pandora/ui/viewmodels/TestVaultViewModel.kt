@@ -57,10 +57,22 @@ class TestVaultViewModel(
         }
     }
 
-    fun unlockVault(password: String) {
+    fun unlockVaultWithPassword(password: String) {
         viewModelScope.launch {
             try {
-                vaultService.unlock(password.toCharArray())
+                vaultService.unlockWithPassword(password.toCharArray())
+                _appState.value = AppState.UNLOCKED
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Wrong password or decryption failed."
+            }
+        }
+    }
+
+    fun unlockVaultWithKey(masterKey: ByteArray) {
+        viewModelScope.launch {
+            try {
+                vaultService.unlockWithKey(masterKey)
                 _appState.value = AppState.UNLOCKED
                 _error.value = null
             } catch (e: Exception) {
