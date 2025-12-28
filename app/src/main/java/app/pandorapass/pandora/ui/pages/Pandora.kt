@@ -1,6 +1,5 @@
 package app.pandorapass.pandora.ui.pages
 
-import SettingsPage
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -58,7 +57,7 @@ fun PandoraApp(viewModel: TestVaultViewModel) {
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel)
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
-                    AppDestinations.SETTINGS -> SettingsPage(settingsViewModel)
+                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), settingsViewModel)
                     AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), viewModel)
                 }
             }
