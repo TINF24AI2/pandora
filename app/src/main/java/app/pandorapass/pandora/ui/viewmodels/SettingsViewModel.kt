@@ -1,6 +1,8 @@
 package app.pandorapass.pandora.ui.viewmodels
 
 import android.app.Application
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.util.Log
 import androidx.biometric.BiometricPrompt
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -43,7 +45,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
             _promptBiometricSetup.value = cipher
         } catch (e: Exception) {
-            // TODO: Handle error
+            Log.e(this.javaClass.simpleName, e.toString())
+            if (e is KeyPermanentlyInvalidatedException) {
+                tokenStorage.clearToken()
+                _isBiometricEnabled.value = false
+                cryptoHelper.clearKey()
+                onToggleBiometric(true)
+                return
+            }
+            _errorEvent.value = e.message
         }
     }
 

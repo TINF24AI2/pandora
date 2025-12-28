@@ -1,6 +1,8 @@
 package app.pandorapass.pandora.ui.pages
 
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -37,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import app.pandorapass.pandora.R
+import app.pandorapass.pandora.logic.utils.BiometricHelper
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
@@ -114,7 +118,15 @@ fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
                         icon = ImageVector.vectorResource(R.drawable.finger_print_24_filled),
                         title = "Unlock with Biometrics",
                         checked = isBiometricEnabled,
-                        onCheckedChange = { isChecked -> viewModel.onToggleBiometric(isChecked) }
+                        onCheckedChange = { isChecked ->
+                            run {
+                                if (BiometricHelper.isBiometricAvailable(context)) {
+                                    viewModel.onToggleBiometric(isChecked)
+                                } else {
+                                    BiometricHelper.promptEnrollBiometric(context)
+                                }
+                            }
+                        }
                     )
                     SettingsSwitchItem(
                         icon = ImageVector.vectorResource(R.drawable.plus_24_outlined), //TODO
@@ -296,4 +308,3 @@ fun SettingsSwitchItem(
         HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
     }
 }
-

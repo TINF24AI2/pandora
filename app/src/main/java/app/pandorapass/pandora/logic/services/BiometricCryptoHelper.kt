@@ -1,13 +1,13 @@
 package app.pandorapass.pandora.logic.services
 
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.widget.Toast
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import app.pandorapass.pandora.PandoraApplication
-import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -17,7 +17,7 @@ import javax.crypto.spec.GCMParameterSpec
 class BiometricCryptoHelper {
 
     companion object {
-        private const val KEY_NAME = "my_biometric_key"
+        private const val KEY_NAME = "pandora_bio_key"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
     }
@@ -130,7 +130,8 @@ class BiometricCryptoHelper {
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
                 if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
-                    errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                    errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON
+                ) {
                     Toast.makeText(activity, "Auth Error: $errString", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -148,10 +149,27 @@ class BiometricCryptoHelper {
                 .build()
 
             biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
-
+        } catch (e: KeyPermanentlyInvalidatedException) {
+            Toast.makeText(
+                activity,
+                "Seems like you removed your fingerprint. Please log in with password",
+                Toast.LENGTH_LONG
+            ).show()
+            application.biometricTokenStorage.clearToken()
+            clearKey()
         } catch (e: Exception) {
-            Toast.makeText(activity, "Biometric key invalidated. Please log in with password.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                activity,
+                "Biometric key invalidated. Please log in with password.",
+                Toast.LENGTH_LONG
+            ).show()
             application.biometricTokenStorage.clearToken()
         }
+    }
+
+    fun clearKey() {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+        keyStore.load(null)
+        keyStore.deleteEntry(KEY_NAME)
     }
 }
