@@ -28,7 +28,15 @@ interface VaultService {
      *
      * @param masterPassword The user's master password.
      */
-    suspend fun unlock(masterPassword: CharArray)
+    suspend fun unlockWithPassword(masterPassword: CharArray)
+
+    /**
+     * Unlocks the vault directly using the master key (the key derived from the master password).
+     * This is necessary when unlocking the vault using biometrics.
+     *
+     * @param masterKey The master key (key derived from the master password)
+     */
+    suspend fun unlockWithKey(masterKey: ByteArray)
 
     /**
      * Locks the currently open vault.

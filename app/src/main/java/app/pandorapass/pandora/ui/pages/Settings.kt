@@ -1,5 +1,9 @@
 package app.pandorapass.pandora.ui.pages
 
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -19,6 +23,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,18 +32,73 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import app.pandorapass.pandora.R
+import app.pandorapass.pandora.logic.utils.BiometricHelper
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(modifier: Modifier = Modifier) {
+fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+
+    val isBiometricEnabled by viewModel.isBiometricEnabled.collectAsState()
+    val cipherForSetup by viewModel.promptBiometricSetup.collectAsState()
+    val errorMsg by viewModel.errorEvent.collectAsState()
+
     // TODO: get from a ViewModel or DataStore???
-    var isDarkMode by remember { mutableStateOf(true) }
-    var unlockWithBio by remember { mutableStateOf(true) }
-    var unlockWithPin by remember { mutableStateOf(true) }
+    var isDarkMode by remember { mutableStateOf(false) }
+    var unlockWithPin by remember { mutableStateOf(false) }
+
+    LaunchedEffect(errorMsg) {
+        errorMsg?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.onErrorShown()
+        }
+    }
+
+    LaunchedEffect(cipherForSetup) {
+        if (activity != null && cipherForSetup != null) {
+            val executor = ContextCompat.getMainExecutor(context)
+
+            val callback = object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    viewModel.onBiometricSetupSucceeded(result)
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    viewModel.onErrorShown()
+                }
+            }
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Enable Biometric Unlock")
+                .setSubtitle("Scan your fingerprint to confirm")
+                .setNegativeButtonText("Cancel")
+                .build()
+
+            val biometricPrompt = BiometricPrompt(activity, executor, callback)
+
+            try {
+                biometricPrompt.authenticate(
+                    promptInfo,
+                    BiometricPrompt.CryptoObject(cipherForSetup!!)
+                )
+            } catch (e: Exception) {
+                // TODO: should probably add some proper error handling here later. If this is still
+                // in the final commit, this is surely intended :)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -56,8 +117,16 @@ fun SettingsPage(modifier: Modifier = Modifier) {
                     SettingsSwitchItem(
                         icon = ImageVector.vectorResource(R.drawable.finger_print_24_filled),
                         title = "Unlock with Biometrics",
-                        checked = unlockWithBio,
-                        onCheckedChange = { unlockWithBio = it }
+                        checked = isBiometricEnabled,
+                        onCheckedChange = { isChecked ->
+                            run {
+                                if (BiometricHelper.isBiometricAvailable(context)) {
+                                    viewModel.onToggleBiometric(isChecked)
+                                } else {
+                                    BiometricHelper.promptEnrollBiometric(context)
+                                }
+                            }
+                        }
                     )
                     SettingsSwitchItem(
                         icon = ImageVector.vectorResource(R.drawable.plus_24_outlined), //TODO
@@ -130,24 +199,20 @@ fun SettingsGroup(
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    // A Column to hold the title and the settings card
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        // The category title (e.g., "Unlock", "Appearance")
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             ),
-            modifier = Modifier.padding(bottom = 8.dp) // Space between title and card
+            modifier = Modifier.padding(bottom = 8.dp)
         )
-        // The card that provides the background and shape
         Surface(
-            shape = MaterialTheme.shapes.medium, // Gives it rounded corners
-            color = MaterialTheme.colorScheme.primaryContainer, // A subtle background color
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // A Column to lay out the setting items vertically inside the card
             Column {
                 content()
             }
@@ -189,7 +254,7 @@ fun SettingsItem(
         trailingContent = {
             if (withTrailingIcon) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.plus_24_outlined),
+                    imageVector = ImageVector.vectorResource(R.drawable.chevron_down_24_outlined),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp)
                 )
@@ -243,4 +308,3 @@ fun SettingsSwitchItem(
         HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
     }
 }
-
