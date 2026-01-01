@@ -25,8 +25,6 @@ import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 
 @Composable
 fun PandoraApp(viewModel: TestVaultViewModel) {
-    val settingsViewModel: SettingsViewModel = viewModel()
-
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -57,7 +55,7 @@ fun PandoraApp(viewModel: TestVaultViewModel) {
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel)
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
-                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), settingsViewModel)
+                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), viewModel)
                 }
             }
         }
