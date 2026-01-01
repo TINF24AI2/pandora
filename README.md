@@ -52,9 +52,11 @@ To get this project running on your local machine, follow these steps:
     *   Android SDK API Level 30+
 
 2.  **Clone the repository:**
-    * git clone https://github.com/TINF24AI2/pandora.git
-    * cd pandora
 
+    ```bash
+    git clone https://github.com/TINF24AI2/pandora.git
+    cd pandora
+    ```
 3.  **Sync Gradle:**
     *   Android Studio will automatically detect the Gradle files. Allow it to sync and download the required dependencies. This may take a few minutes.
 
