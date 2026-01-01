@@ -58,7 +58,6 @@ fun PandoraApp(viewModel: TestVaultViewModel) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel)
                     AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding))
                     AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), settingsViewModel)
-                    AppDestinations.ACCOUNT -> AccountPage(Modifier.padding(innerPadding), viewModel)
                 }
             }
         }
@@ -73,5 +72,4 @@ enum class AppDestinations(
     PASSWORDS("Passwords", R.drawable.folder_24_outlined, R.drawable.folder_24_filled),
     GENERATE("Generate", R.drawable.sparkles_24_outline, R.drawable.sparkles_24_filled),
     SETTINGS("Settings", R.drawable.settings_24_outline, R.drawable.settings_24_filled),
-    ACCOUNT("Account", R.drawable.account_circle_24_outline, R.drawable.account_circle_24_filled),
-}
+ }
