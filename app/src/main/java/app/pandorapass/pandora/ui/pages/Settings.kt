@@ -38,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel // <-- ADD THIS IMPORT
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
