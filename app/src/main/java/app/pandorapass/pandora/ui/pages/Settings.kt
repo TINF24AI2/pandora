@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
@@ -45,13 +46,17 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
+fun SettingsPage(
+    modifier: Modifier = Modifier,
+    testVaultViewModel: TestVaultViewModel,
+    settingsViewModel: SettingsViewModel
+) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
-    val isBiometricEnabled by viewModel.isBiometricEnabled.collectAsState()
-    val cipherForSetup by viewModel.promptBiometricSetup.collectAsState()
-    val errorMsg by viewModel.errorEvent.collectAsState()
+    val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
+    val cipherForSetup by settingsViewModel.promptBiometricSetup.collectAsState()
+    val errorMsg by settingsViewModel.errorEvent.collectAsState()
 
     // TODO: get from a ViewModel or DataStore???
     var isDarkMode by remember { mutableStateOf(false) }
@@ -60,7 +65,7 @@ fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
     LaunchedEffect(errorMsg) {
         errorMsg?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            viewModel.onErrorShown()
+            settingsViewModel.onErrorShown()
         }
     }
 
@@ -71,12 +76,12 @@ fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
             val callback = object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    viewModel.onBiometricSetupSucceeded(result)
+                    settingsViewModel.onBiometricSetupSucceeded(result)
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    viewModel.onErrorShown()
+                    settingsViewModel.onErrorShown()
                 }
             }
 
@@ -121,7 +126,7 @@ fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
                         onCheckedChange = { isChecked ->
                             run {
                                 if (BiometricHelper.isBiometricAvailable(context)) {
-                                    viewModel.onToggleBiometric(isChecked)
+                                    settingsViewModel.onToggleBiometric(isChecked)
                                 } else {
                                     BiometricHelper.promptEnrollBiometric(context)
                                 }
@@ -176,7 +181,7 @@ fun SettingsPage(modifier: Modifier = Modifier, viewModel: SettingsViewModel) {
                         icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Lock now",
                         withTrailingIcon = false,
-                        onClick = { /* TODO: Handle About click */ }
+                        onClick = { testVaultViewModel.lockVault() }
                     )
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.arrow_left_end_on_rectangle_24_outlined),
