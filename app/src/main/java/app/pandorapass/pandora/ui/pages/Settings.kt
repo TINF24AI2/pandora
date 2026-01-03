@@ -38,8 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.viewmodel.compose.viewModel
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel // <-- ADD THIS IMPORT
+import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
@@ -47,11 +46,13 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(modifier: Modifier = Modifier, testVaultViewModel: TestVaultViewModel) {
+fun SettingsPage(
+    modifier: Modifier = Modifier,
+    testVaultViewModel: TestVaultViewModel,
+    settingsViewModel: SettingsViewModel
+) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
-
-    val settingsViewModel: SettingsViewModel = viewModel()
 
     val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
     val cipherForSetup by settingsViewModel.promptBiometricSetup.collectAsState()

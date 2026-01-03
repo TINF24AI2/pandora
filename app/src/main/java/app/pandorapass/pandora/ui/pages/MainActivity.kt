@@ -46,6 +46,7 @@ import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
 import app.pandorapass.pandora.logic.services.impl.VaultServiceImpl
 import app.pandorapass.pandora.ui.theme.PandoraTheme
 import app.pandorapass.pandora.ui.viewmodels.AppState
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
 
@@ -64,6 +65,7 @@ class MainActivity : FragmentActivity() {
 
                 val factory = TestVaultViewModelFactory(vaultService)
                 val viewModel: TestVaultViewModel = viewModel(factory = factory)
+                val settingsViewModel: SettingsViewModel = viewModel()
                 val appState by viewModel.appState.collectAsState()
                 val error by viewModel.error.collectAsState()
 
@@ -104,7 +106,7 @@ class MainActivity : FragmentActivity() {
                         onSubmit = { viewModel.unlockVaultWithPassword(it) }
                     )
 
-                    AppState.UNLOCKED -> PandoraApp(viewModel)
+                    AppState.UNLOCKED -> PandoraApp(viewModel, settingsViewModel)
                 }
             }
         }
