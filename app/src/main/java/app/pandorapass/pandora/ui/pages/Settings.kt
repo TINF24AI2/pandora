@@ -181,14 +181,8 @@ fun SettingsPage(
                         icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Lock now",
                         withTrailingIcon = false,
-                        onClick = { testVaultViewModel.lockVault() }
-                    )
-                    SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.arrow_left_end_on_rectangle_24_outlined),
-                        title = "Log out",
-                        withTrailingIcon = false,
                         isLastItem = true,
-                        onClick = { /* TODO: Handle About click */ }
+                        onClick = { testVaultViewModel.lockVault() }
                     )
                 }
             }
