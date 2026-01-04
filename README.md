@@ -8,7 +8,6 @@ The application's settings screen demonstrates several core features of the app:
 
 *   **Secure Authentication:**
     *   **Biometric Unlock:** Users can enable fingerprint or face unlock for quick and secure access, leveraging the Android Biometric API.
-    *   **PIN Unlock:** A fallback PIN option is available for devices without biometric hardware.
 *   **Modern UI:**
     *   **Light & Dark Themes:** The app includes beautiful, hand-crafted light and dark themes that can be switched manually.
     *   **Dynamic Theming:** (Work in Progress) The app is set up to support Material You dynamic colors on Android 12+.
