@@ -48,7 +48,7 @@ This project utilizes a modern Android architecture and libraries to ensure it i
 To get this project running on your local machine, follow these steps:
 
 1.  **Prerequisites:**
-    *   Android Studio (latest stable version recommended, e.g., Iguana or newer)
+    *   Android Studio (latest stable version recommended, e.g., Otter or newer)
     *   Android SDK API Level 30+
 
 2.  **Clone the repository:**
