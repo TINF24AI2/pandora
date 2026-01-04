@@ -61,7 +61,7 @@ To get this project running on your local machine, follow these steps:
     *   Android Studio will automatically detect the Gradle files. Allow it to sync and download the required dependencies. This may take a few minutes.
 
 4.  **Run the application:**
-    *   Select an emulator (running API 30+) or a physical Android device.
+    *   Select an emulator or a physical Android device. (running Android 8 or later)
     *   Click the **Run 'app'** button (▶️) in the toolbar.
 
 ## 🎓 Project Context
