@@ -58,8 +58,8 @@ fun SettingsPage(
     val cipherForSetup by settingsViewModel.promptBiometricSetup.collectAsState()
     val errorMsg by settingsViewModel.errorEvent.collectAsState()
 
+    val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
     // TODO: get from a ViewModel or DataStore???
-    var isDarkMode by remember { mutableStateOf(false) }
     var unlockWithPin by remember { mutableStateOf(false) }
 
     LaunchedEffect(errorMsg) {
@@ -150,7 +150,9 @@ fun SettingsPage(
                         title = "Theme",
                         subtitle = if (isDarkMode) "Dark Theme" else "Light Theme",
                         checked = isDarkMode,
-                        onCheckedChange = { isDarkMode = it }
+                        onCheckedChange = { isChecked ->
+                            settingsViewModel.onThemeChanged(isChecked)
+                        }
                     )
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.language_24_outlined),

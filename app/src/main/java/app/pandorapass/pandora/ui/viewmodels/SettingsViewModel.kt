@@ -13,10 +13,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.crypto.Cipher
+import app.pandorapass.pandora.data.SettingsDataStore
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel(
+    application: Application,
+    private val settingsDataStore: SettingsDataStore,
+) : AndroidViewModel(application) {
     private val tokenStorage = (application as PandoraApplication).biometricTokenStorage
     private val cryptoHelper = (application as PandoraApplication).biometricCryptoHelper
+
+    val isDarkMode = settingsDataStore.isDarkMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
 
     private val _isBiometricEnabled = MutableStateFlow(tokenStorage.isBiometricEnabled())
     val isBiometricEnabled = _isBiometricEnabled.asStateFlow()
@@ -69,6 +82,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _isBiometricEnabled.value = true
 
             _promptBiometricSetup.value = null
+        }
+    }
+
+    fun onThemeChanged(isDarkMode: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setDarkMode(isDarkMode)
         }
     }
 

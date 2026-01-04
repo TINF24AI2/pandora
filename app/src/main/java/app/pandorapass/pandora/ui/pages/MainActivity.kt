@@ -3,6 +3,7 @@ package app.pandorapass.pandora.ui.pages
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,16 +48,28 @@ import app.pandorapass.pandora.logic.services.impl.VaultServiceImpl
 import app.pandorapass.pandora.ui.theme.PandoraTheme
 import app.pandorapass.pandora.ui.viewmodels.AppState
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
+import app.pandorapass.pandora.data.SettingsDataStore
 
 class MainActivity : FragmentActivity() {
+
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        SettingsViewModelFactory(
+            this.application,
+            SettingsDataStore(this.applicationContext)
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
         setContent {
-            PandoraTheme {
+            val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+
+            PandoraTheme(darkTheme = isDarkMode) {
                 val context = LocalContext.current
                 val repository = FileVaultRepository(applicationContext)
                 val cryptoService = CryptoServiceImpl()
@@ -65,7 +78,6 @@ class MainActivity : FragmentActivity() {
 
                 val factory = TestVaultViewModelFactory(vaultService)
                 val viewModel: TestVaultViewModel = viewModel(factory = factory)
-                val settingsViewModel: SettingsViewModel = viewModel()
                 val appState by viewModel.appState.collectAsState()
                 val error by viewModel.error.collectAsState()
 
