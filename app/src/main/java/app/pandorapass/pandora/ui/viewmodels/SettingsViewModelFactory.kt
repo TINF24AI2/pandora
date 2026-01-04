@@ -15,6 +15,6 @@ class SettingsViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return SettingsViewModel(application, settingsDataStore) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }
