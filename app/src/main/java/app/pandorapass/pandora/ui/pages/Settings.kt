@@ -180,7 +180,7 @@ fun SettingsPage(
                         onClick = { /* TODO: Handle Change Password click */ }
                     )
                     SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.clipboard_24_outlined), // Replace with your icon
+                        icon = ImageVector.vectorResource(R.drawable.clipboard_24_outlined),
                         title = "Clear clipboard after",
                         subtitle = formatTimeout(clipboardTimeout),
                         onClick = { showClipboardDialog = true }
