@@ -26,9 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,7 +56,6 @@ fun SettingsPage(
     val errorMsg by settingsViewModel.errorEvent.collectAsState()
 
     val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
-    var unlockWithPin by remember { mutableStateOf(false) }
 
     LaunchedEffect(errorMsg) {
         errorMsg?.let { message ->
@@ -122,6 +118,7 @@ fun SettingsPage(
                         icon = ImageVector.vectorResource(R.drawable.finger_print_24_filled),
                         title = "Unlock with Biometrics",
                         checked = isBiometricEnabled,
+                        isLastItem = true,
                         onCheckedChange = { isChecked ->
                             run {
                                 if (BiometricHelper.isBiometricAvailable(context)) {
@@ -131,13 +128,6 @@ fun SettingsPage(
                                 }
                             }
                         }
-                    )
-                    SettingsSwitchItem(
-                        icon = ImageVector.vectorResource(R.drawable.plus_24_outlined), //TODO
-                        title = "Unlock with PIN",
-                        checked = unlockWithPin,
-                        isLastItem = true,
-                        onCheckedChange = { unlockWithPin = it }
                     )
                 }
             }
