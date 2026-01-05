@@ -1,10 +1,10 @@
 package app.pandorapass.pandora.logic.workers
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import android.content.ClipData
-import android.content.ClipboardManager
 
 class ClipboardClearWorker(appContext: Context, workerParams: WorkerParameters) :
     Worker(appContext, workerParams) {
