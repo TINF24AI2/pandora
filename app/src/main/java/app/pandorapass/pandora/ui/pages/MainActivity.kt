@@ -58,7 +58,7 @@ class MainActivity : FragmentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels {
         SettingsViewModelFactory(
             this.application,
-            SettingsDataStore(this.applicationContext)
+            (application as PandoraApplication).settingsDataStore
         )
     }
 
