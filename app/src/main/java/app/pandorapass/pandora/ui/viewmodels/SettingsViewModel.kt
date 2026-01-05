@@ -31,6 +31,13 @@ class SettingsViewModel(
             initialValue = false
         )
 
+    val clipboardTimeout = settingsDataStore.clipboardTimeout
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 15 // Initial default value
+        )
+
     private val _isBiometricEnabled = MutableStateFlow(tokenStorage.isBiometricEnabled())
     val isBiometricEnabled = _isBiometricEnabled.asStateFlow()
 
@@ -88,6 +95,12 @@ class SettingsViewModel(
     fun onThemeChanged(isDarkMode: Boolean) {
         viewModelScope.launch {
             settingsDataStore.setDarkMode(isDarkMode)
+        }
+    }
+
+    fun onClipboardTimeoutChanged(timeoutInSeconds: Int) {
+        viewModelScope.launch {
+            settingsDataStore.setClipboardTimeout(timeoutInSeconds)
         }
     }
 

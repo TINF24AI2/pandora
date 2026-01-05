@@ -1,5 +1,6 @@
 package app.pandorapass.pandora.ui.pages
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Checkbox
@@ -28,9 +29,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +40,14 @@ import app.pandorapass.pandora.R
 import kotlin.collections.shuffle
 import kotlin.math.roundToInt
 import java.security.SecureRandom
+import android.widget.Toast
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.TimeUnit
 
 /**
  * Main screen for generating a password.
@@ -57,7 +65,12 @@ import java.security.SecureRandom
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeneratePage(modifier: Modifier = Modifier) {
+fun GeneratePage(
+    modifier: Modifier = Modifier,
+    settingsViewModel: SettingsViewModel
+) {
+
+    val context = LocalContext.current
 
     // State for each character category toggle
     var checkedLowercaseLetters by remember { mutableStateOf(true) }
@@ -70,9 +83,6 @@ fun GeneratePage(modifier: Modifier = Modifier) {
 
     // Holds the generated password
     var password by remember { mutableStateOf("") }
-
-    // Clipboard manager for copying the password
-    val clipboardManager = LocalClipboardManager.current
 
     Scaffold(
         topBar = {
@@ -110,7 +120,33 @@ fun GeneratePage(modifier: Modifier = Modifier) {
                 ) {
                     Button(
                         onClick = {
-                            clipboardManager.setText(AnnotatedString(password))
+                            if (password.isBlank()) {
+                                Toast.makeText(context, "Generate a password first!", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+
+                            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("Generated Password", password)
+                            clipboardManager.setPrimaryClip(clip)
+                            Toast.makeText(context, "Password copied to clipboard", Toast.LENGTH_SHORT).show()
+
+                            val timeoutSeconds = runBlocking { settingsViewModel.clipboardTimeout.first() }
+                            val workManager = WorkManager.getInstance(context)
+
+                            workManager.cancelUniqueWork(ClipboardClearWorker.WORK_NAME)
+
+                            if (timeoutSeconds > 0) {
+                                val clearClipboardWorkRequest =
+                                    OneTimeWorkRequestBuilder<ClipboardClearWorker>()
+                                    .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS) // Set the delay
+                                    .build()
+
+                                workManager.enqueueUniqueWork(
+                                    ClipboardClearWorker.WORK_NAME,
+                                    androidx.work.ExistingWorkPolicy.REPLACE, // Replace any existing work with this new one
+                                    clearClipboardWorkRequest
+                                )
+                            }
                         },
                         modifier = Modifier.fillMaxSize()
                     ) {
