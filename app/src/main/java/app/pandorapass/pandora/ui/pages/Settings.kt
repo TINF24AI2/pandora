@@ -59,7 +59,6 @@ fun SettingsPage(
     val errorMsg by settingsViewModel.errorEvent.collectAsState()
 
     val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
-    // TODO: get from a ViewModel or DataStore???
     var unlockWithPin by remember { mutableStateOf(false) }
 
     LaunchedEffect(errorMsg) {
