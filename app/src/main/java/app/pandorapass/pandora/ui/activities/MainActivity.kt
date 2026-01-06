@@ -77,6 +77,9 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val startPage = if (intent.component?.className == "$packageName.SettingsPage")
+            "settings" else "home"
+
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 (application as PandoraApplication).lockEvent.collect {
