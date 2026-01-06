@@ -24,7 +24,7 @@ class SettingsDataStore(private val context: Context) {
 
     val clipboardTimeout: Flow<Int> = context.dataStore.data
         .map { preferences ->
-            preferences[clipboardTimeoutKey] ?: 15 // Default to 15 seconds
+            preferences[clipboardTimeoutKey] ?: 30 // Default to 30 seconds
         }
 
     suspend fun setDarkMode(isDarkMode: Boolean) {

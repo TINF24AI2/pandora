@@ -35,7 +35,7 @@ class SettingsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = 15 // Initial default value
+            initialValue = 30 // Initial default value
         )
 
     private val _isBiometricEnabled = MutableStateFlow(tokenStorage.isBiometricEnabled())

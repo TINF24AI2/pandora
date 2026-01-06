@@ -84,6 +84,8 @@ fun GeneratePage(
     // Holds the generated password
     var password by remember { mutableStateOf("") }
 
+    val clipboardTimeoutSeconds by settingsViewModel.clipboardTimeout.collectAsState(initial = 60)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -130,7 +132,7 @@ fun GeneratePage(
                             clipboardManager.setPrimaryClip(clip)
                             Toast.makeText(context, "Password copied to clipboard", Toast.LENGTH_SHORT).show()
 
-                            val timeoutSeconds = runBlocking { settingsViewModel.clipboardTimeout.first() }
+                            val timeoutSeconds = clipboardTimeoutSeconds
                             val workManager = WorkManager.getInstance(context)
 
                             workManager.cancelUniqueWork(ClipboardClearWorker.WORK_NAME)
@@ -138,12 +140,12 @@ fun GeneratePage(
                             if (timeoutSeconds > 0) {
                                 val clearClipboardWorkRequest =
                                     OneTimeWorkRequestBuilder<ClipboardClearWorker>()
-                                    .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS) // Set the delay
-                                    .build()
+                                        .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                                        .build()
 
                                 workManager.enqueueUniqueWork(
                                     ClipboardClearWorker.WORK_NAME,
-                                    androidx.work.ExistingWorkPolicy.REPLACE, // Replace any existing work with this new one
+                                    androidx.work.ExistingWorkPolicy.REPLACE,
                                     clearClipboardWorkRequest
                                 )
                             }

@@ -1,4 +1,3 @@
-// In app/pandorapass/pandora/ui/pages/SettingsDialogs.kt
 package app.pandorapass.pandora.ui.pages
 
 import androidx.compose.foundation.layout.Column
@@ -20,10 +19,10 @@ import androidx.compose.ui.unit.dp
 // Helper to format seconds into a user-friendly string
 fun formatTimeout(seconds: Int): String {
     return when (seconds) {
-        15 -> "15 Seconds"
         30 -> "30 Seconds"
         60 -> "1 Minute"
-        -1 -> "Never" // -1 will represent the "Never clear" option
+        300 -> "5 Minutes"
+        0 -> "Never" // 0 will represent the "Never clear" option
         else -> "$seconds Seconds"
     }
 }
@@ -34,7 +33,7 @@ fun ClipboardTimeoutDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
-    val options = listOf(15, 30, 60, -1)
+    val options = listOf(30, 60, 300, 0)
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(currentTimeout) }
 
     AlertDialog(
