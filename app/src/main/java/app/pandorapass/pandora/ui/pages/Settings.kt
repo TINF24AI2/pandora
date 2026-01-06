@@ -156,16 +156,10 @@ fun SettingsPage(
                         title = "Theme",
                         subtitle = if (isDarkMode) "Dark Theme" else "Light Theme",
                         checked = isDarkMode,
+                        isLastItem = true,
                         onCheckedChange = { isChecked ->
                             settingsViewModel.onThemeChanged(isChecked)
                         }
-                    )
-                    SettingsItem(
-                        icon = ImageVector.vectorResource(R.drawable.language_24_outlined),
-                        title = "Language",
-                        subtitle = "English",
-                        isLastItem = true,
-                        onClick = { /* TODO: Handle Language click */ }
                     )
                 }
             }
