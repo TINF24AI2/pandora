@@ -52,18 +52,12 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
-    var query: String by remember { mutableStateOf("") }
-    val passwords by viewModel.vaultEntries.collectAsState()
+    val query by viewModel.searchQuery.collectAsState()
+    val filteredPasswords by viewModel.filteredPasswords.collectAsState()
     var addPassword by remember { mutableStateOf(false) }
     var showPasswordEntry by remember { mutableStateOf(false) }
     var id by remember { mutableStateOf("") }
 
-    val filteredPasswords: List<LoginVaultEntry> =
-        passwords.filterIsInstance<LoginVaultEntry>().filter { entry ->
-            entry.urls?.any { url -> url.contains(query, ignoreCase = true) } == true ||
-                    entry.username.contains(query, ignoreCase = true) ||
-                    entry.title.contains(query, ignoreCase = true)
-        }
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
@@ -92,7 +86,7 @@ fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
                     SearchBarDefaults.InputField(
                         query = query,
                         onQueryChange = {
-                            query = it
+                            viewModel.updateSearchQuery(it)
                         },
                         placeholder = { Text("Search Passwords") },
                         onSearch = {},
@@ -102,24 +96,30 @@ fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
                 },
                 expanded = false,
                 onExpandedChange = {}
-            ) {} //Lazy Column outside of search bar to not restrict scrolling
+            ) {}
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(filteredPasswords) { entry ->
+                items(
+                    items = filteredPasswords
+                ) { entry ->
                     PasswordItem(
                         entry = entry,
-                        showEntry = { showPasswordEntry = true; id = entry.id })
+                        showEntry = {
+                            showPasswordEntry = true
+                            id = entry.id
+                        }
+                    )
                 }
             }
         }
     }
     if (addPassword) {
-        AddPassword(viewModel, { addPassword = false })
+        AddPassword(viewModel) { addPassword = false }
     }
     if (showPasswordEntry) {
-        ShowEntry(viewModel, id, { showPasswordEntry = false })
+        ShowEntry(viewModel, id) { showPasswordEntry = false }
     }
 }
 
@@ -245,7 +245,6 @@ fun ShowEntry(viewModel: TestVaultViewModel, id: String, onDismiss: () -> Unit) 
 @Composable
 fun AddPassword(viewModel: TestVaultViewModel, onDismiss: () -> Unit) {
     var showPassword by remember { mutableStateOf(false) }
-
     var newUsername by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var newURL by remember { mutableStateOf("") }

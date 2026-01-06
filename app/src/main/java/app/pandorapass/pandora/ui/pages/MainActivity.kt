@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +50,6 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
-import app.pandorapass.pandora.data.SettingsDataStore
 
 class MainActivity : FragmentActivity() {
 
@@ -161,31 +159,28 @@ fun Login(onSubmit: (pass: String) -> Unit) {
                     placeholder = { Text("Enter your password") },
                     singleLine = true,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp)),
+                        .fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                     )
                 )
                 Button(
-                    onClick = {
-                        onSubmit(password)
-                    },
+                    onClick = { onSubmit(password) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Login",
-                        style = MaterialTheme.typography.bodyLarge.copy(
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         )
                     )
                 }
-                //optional bottom text. leave for now
                 Text(
                     text = "By continuing, you agree to our Terms & Conditions",
                     style = MaterialTheme.typography.bodySmall,

@@ -21,7 +21,7 @@ class VaultServiceImpl(
     private val cryptoService: CryptoService,
     private val repository: FileVaultRepository
 ) : VaultService {
-    override var entries: MutableStateFlow<MutableList<VaultEntry>> = MutableStateFlow(mutableListOf())
+    override val entries: MutableStateFlow<List<VaultEntry>> = MutableStateFlow(mutableListOf())
 
     override suspend fun createNewVault(masterPassword: CharArray) {
         val newSalt = cryptoService.generateRandomSalt()
@@ -60,7 +60,7 @@ class VaultServiceImpl(
     }
 
     override suspend fun addEntry(entry: VaultEntry) {
-        entries.value.add(entry)
+        entries.value = entries.value + entry
 
         saveVaultToDisk()
     }
@@ -73,7 +73,7 @@ class VaultServiceImpl(
                 } else {
                     existingEntry
                 }
-            } as MutableList<VaultEntry>
+            }
         }
 
         saveVaultToDisk()
@@ -81,7 +81,7 @@ class VaultServiceImpl(
 
     override suspend fun deleteEntry(id: String) {
         entries.update { currentList ->
-            currentList.filter { it.id != id } as MutableList<VaultEntry>
+            currentList.filter { it.id != id }
         }
 
         saveVaultToDisk()
