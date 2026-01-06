@@ -47,11 +47,21 @@ import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import java.util.Date
+import android.content.Context
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
+import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
+import java.util.concurrent.TimeUnit
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
+fun PasswordPage(
+    modifier: Modifier,
+    viewModel: TestVaultViewModel,
+    settingsViewModel: SettingsViewModel
+) {
     var query: String by remember { mutableStateOf("") }
     val passwords by viewModel.vaultEntries.collectAsState()
     var addPassword by remember { mutableStateOf(false) }
@@ -119,7 +129,7 @@ fun PasswordPage(modifier: Modifier, viewModel: TestVaultViewModel) {
         AddPassword(viewModel, { addPassword = false })
     }
     if (showPasswordEntry) {
-        ShowEntry(viewModel, id, { showPasswordEntry = false })
+        ShowEntry(viewModel, id, settingsViewModel, { showPasswordEntry = false })
     }
 }
 
@@ -160,10 +170,11 @@ fun CopyableTextField(
 fun CopyablePasswordField(
     modifier: Modifier = Modifier,
     label: String,
-    text: String
+    text: String,
+    settingsViewModel: SettingsViewModel
 ) {
-    val clipboard: ClipboardManager =
-        LocalContext.current.getSystemService(ClipboardManager::class.java)
+    val context = LocalContext.current
+    val clipboardTimeoutSeconds by settingsViewModel.clipboardTimeout.collectAsState(initial = 15)
     var visible by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -181,9 +192,31 @@ fun CopyablePasswordField(
                         else Icon(ImageVector.vectorResource(R.drawable.eye_24_outlined), contentDescription = "")
                     }
                     IconButton(onClick = {
-                        clipboard.setPrimaryClip(
-                            ClipData.newPlainText(label, text)
-                        )
+                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText(label, text)
+                        clipboardManager.setPrimaryClip(clip)
+                        // Optionally add a Toast message here
+
+                        // b. Schedule the clipboard to be cleared using WorkManager
+                        val timeoutSeconds = clipboardTimeoutSeconds
+                        val workManager = WorkManager.getInstance(context)
+
+                        // c. Always cancel any previously scheduled work to reset the timer
+                        workManager.cancelUniqueWork(ClipboardClearWorker.WORK_NAME)
+
+                        // d. Only schedule new work if the timeout is not "Never" (-1)
+                        if (timeoutSeconds > 0) {
+                            val clearClipboardWorkRequest =
+                                OneTimeWorkRequestBuilder<ClipboardClearWorker>()
+                                    .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                                    .build()
+
+                            workManager.enqueueUniqueWork(
+                                ClipboardClearWorker.WORK_NAME,
+                                androidx.work.ExistingWorkPolicy.REPLACE, // Replace old timer
+                                clearClipboardWorkRequest
+                            )
+                        }
                     }) {
                         Icon(
                             imageVector = ImageVector.vectorResource(
@@ -202,7 +235,12 @@ fun CopyablePasswordField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowEntry(viewModel: TestVaultViewModel, id: String, onDismiss: () -> Unit) {
+fun ShowEntry(
+    viewModel: TestVaultViewModel,
+    id: String,
+    settingsViewModel: SettingsViewModel,
+    onDismiss: () -> Unit
+) {
     val entries by viewModel.vaultEntries.collectAsState()
     val loginEntry =
         entries.filterIsInstance<LoginVaultEntry>().find { it.id == id } ?: LoginVaultEntry(
@@ -230,7 +268,11 @@ fun ShowEntry(viewModel: TestVaultViewModel, id: String, onDismiss: () -> Unit) 
             ) {
                 Text(loginEntry.title)
                 CopyableTextField(label = "Username", text = loginEntry.username)
-                CopyablePasswordField(label = "Password", text = loginEntry.password)
+                CopyablePasswordField(
+                    label = "Password",
+                    text = loginEntry.password,
+                    settingsViewModel = settingsViewModel // Pass it here
+                )
                 loginEntry.urls?.forEach { url ->
                     CopyableTextField(label = "URL", text = url)
                 }

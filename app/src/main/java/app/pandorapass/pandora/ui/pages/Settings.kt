@@ -26,6 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,6 +59,20 @@ fun SettingsPage(
     val errorMsg by settingsViewModel.errorEvent.collectAsState()
 
     val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+
+    val clipboardTimeout by settingsViewModel.clipboardTimeout.collectAsState()
+    var showClipboardDialog by remember { mutableStateOf(false) }
+
+    if (showClipboardDialog) {
+        ClipboardTimeoutDialog(
+            currentTimeout = clipboardTimeout,
+            onDismiss = { showClipboardDialog = false },
+            onConfirm = { newTimeout ->
+                settingsViewModel.onClipboardTimeoutChanged(newTimeout)
+                showClipboardDialog = false
+            }
+        )
+    }
 
     LaunchedEffect(errorMsg) {
         errorMsg?.let { message ->
@@ -164,9 +181,9 @@ fun SettingsPage(
                     )
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.clipboard_24_outlined),
-                        title = "Clear clipboard",
-                        subtitle = "Never",
-                        onClick = { /* TODO: Handle About click */ }
+                        title = "Clear clipboard after",
+                        subtitle = formatTimeout(clipboardTimeout),
+                        onClick = { showClipboardDialog = true }
                     )
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
