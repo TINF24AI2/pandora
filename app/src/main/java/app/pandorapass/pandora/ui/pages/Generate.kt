@@ -45,8 +45,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 
 /**
