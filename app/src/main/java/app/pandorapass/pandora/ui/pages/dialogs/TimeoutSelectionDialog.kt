@@ -1,5 +1,3 @@
-package app.pandorapass.pandora.ui.pages
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,26 +17,31 @@ import androidx.compose.ui.unit.dp
 // Helper to format seconds into a user-friendly string
 fun formatTimeout(seconds: Int): String {
     return when (seconds) {
+        0 -> "Instant"
         30 -> "30 Seconds"
         60 -> "1 Minute"
         300 -> "5 Minutes"
-        0 -> "Never" // 0 will represent the "Never clear" option
+        900 -> "15 Minutes"
+        1800 -> "30 Minutes"
+        -1 -> "Never" // -1 will represent the "Never clear" option
         else -> "$seconds Seconds"
     }
 }
 
 @Composable
-fun ClipboardTimeoutDialog(
+fun TimeoutSelectionDialog(
+    title: String,
     currentTimeout: Int,
+    options: List<Int>,
+    formatLabel: (Int) -> String,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
-    val options = listOf(30, 60, 300, 0)
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(currentTimeout) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Clear clipboard after") },
+        title = { Text(title) },
         text = {
             Column {
                 options.forEach { timeout ->
@@ -57,7 +60,7 @@ fun ClipboardTimeoutDialog(
                             onClick = { onOptionSelected(timeout) }
                         )
                         Text(
-                            text = formatTimeout(timeout),
+                            text = formatLabel(timeout),
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }

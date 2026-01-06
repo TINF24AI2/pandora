@@ -6,6 +6,8 @@ import app.pandorapass.pandora.logic.services.BiometricCryptoHelper
 import app.pandorapass.pandora.logic.services.CryptoService
 import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
 import app.pandorapass.pandora.data.SettingsDataStore
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class PandoraApplication : Application() {
     lateinit var biometricCryptoHelper: BiometricCryptoHelper
@@ -17,6 +19,9 @@ class PandoraApplication : Application() {
         SettingsDataStore(this)
     }
 
+    private val _lockEvent = MutableSharedFlow<Unit>()
+    val lockEvent = _lockEvent.asSharedFlow()
+
     override fun onCreate() {
         super.onCreate()
 
@@ -24,5 +29,9 @@ class PandoraApplication : Application() {
         biometricTokenStorage = BiometricTokenStorage(this)
 
         cryptoService = CryptoServiceImpl()
+    }
+
+    suspend fun triggerLockEvent() {
+        _lockEvent.emit(Unit)
     }
 }

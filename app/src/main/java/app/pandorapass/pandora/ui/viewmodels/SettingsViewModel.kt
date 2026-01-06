@@ -35,7 +35,14 @@ class SettingsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = 30 // Initial default value
+            initialValue = 30
+        )
+
+    val autoLockTimeout = settingsDataStore.autoLockTimeout
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 300
         )
 
     private val _isBiometricEnabled = MutableStateFlow(tokenStorage.isBiometricEnabled())
@@ -101,6 +108,12 @@ class SettingsViewModel(
     fun onClipboardTimeoutChanged(timeoutInSeconds: Int) {
         viewModelScope.launch {
             settingsDataStore.setClipboardTimeout(timeoutInSeconds)
+        }
+    }
+
+    fun onAutoLockTimeoutChanged(timeoutInMinutes: Int) {
+        viewModelScope.launch {
+            settingsDataStore.setAutoLockTimeout(timeoutInMinutes)
         }
     }
 
