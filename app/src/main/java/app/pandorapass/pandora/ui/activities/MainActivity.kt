@@ -50,6 +50,7 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
+import app.pandorapass.pandora.ui.pages.PandoraApp
 
 class MainActivity : FragmentActivity() {
 
@@ -62,6 +63,9 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val startPage = if (intent.component?.className == "$packageName.SettingsPage")
+            "settings" else "home"
 
         enableEdgeToEdge()
         setContent {
@@ -116,7 +120,7 @@ class MainActivity : FragmentActivity() {
                         onSubmit = { viewModel.unlockVaultWithPassword(it) }
                     )
 
-                    AppState.UNLOCKED -> PandoraApp(viewModel, settingsViewModel)
+                    AppState.UNLOCKED -> PandoraApp(startPage, viewModel, settingsViewModel)
                 }
             }
         }
