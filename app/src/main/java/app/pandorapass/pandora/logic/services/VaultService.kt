@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * Represents the API of the password vault service.
  */
 interface VaultService {
-    val entries: MutableStateFlow<MutableList<VaultEntry>>
+    val entries: MutableStateFlow<List<VaultEntry>>
 
     /**
      * Checks whether the vault is already initialized (exists) or whether we should start the setup
