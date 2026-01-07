@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.PandoraApplication
@@ -78,8 +79,10 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            (application as PandoraApplication).lockEvent.collect {
-                testVaultViewModel.lockVault()
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                (application as PandoraApplication).lockEvent.collect {
+                    testVaultViewModel.lockVault()
+                }
             }
         }
 
@@ -149,14 +152,18 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun scheduleAutoLock() {
-        if (testVaultViewModel.appState.value == AppState.LOCKED) return
-
         val workManager = WorkManager.getInstance(applicationContext)
 
-        // Use lifecycleScope to get the timeout value from the flow without blocking
         lifecycleScope.launch {
-            val timeoutValue = settingsViewModel.autoLockTimeout.first()
+            val currentAppState = testVaultViewModel.appState.value
+            if (currentAppState == AppState.LOCKED) {
+                return@launch // State is already locked, do nothing.
+            }
 
+            val timeoutValue = settingsViewModel.autoLockTimeout.first()
+            if (timeoutValue == -1) {
+                return@launch // User selected "Never", so do nothing.
+            }
             // Stop further execution for the "Instant" case
             if (timeoutValue == 0) {
                 testVaultViewModel.lockVault()

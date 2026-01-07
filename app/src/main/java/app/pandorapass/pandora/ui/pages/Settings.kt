@@ -1,6 +1,5 @@
 package app.pandorapass.pandora.ui.pages
 
-import TimeoutSelectionDialog
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -42,8 +41,9 @@ import androidx.fragment.app.FragmentActivity
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
+import app.pandorapass.pandora.ui.pages.dialogs.TimeoutSelectionDialog
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
-import formatTimeout
+import app.pandorapass.pandora.ui.pages.dialogs.formatTimeout
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,15 +95,15 @@ fun SettingsPage(
             title = "Automatically lock after",
             currentTimeout = autoLockTimeout,
             options = listOf(0, 60, 300, 900, 1800, -1),
-            formatLabel = { minutes ->
-                when (minutes) {
+            formatLabel = { seconds ->
+                when (seconds) {
                     0 -> "Instant"
                     60 -> "1 Minute"
                     300 -> "5 Minutes"
                     900 -> "15 Minutes"
                     1800 -> "30 Minutes"
                     -1 -> "Never"
-                    else -> "$minutes Minutes"
+                    else -> "$seconds Seconds"
                 }
             },
             onDismiss = { showAutoLockDialog = false },
@@ -210,7 +210,7 @@ fun SettingsPage(
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Automatically lock after...",
-                        subtitle = formatTimeout(autoLockTimeout), // This one is correct
+                        subtitle = formatTimeout(autoLockTimeout),
                         onClick = { showAutoLockDialog = true }
                     )
                     SettingsItem(

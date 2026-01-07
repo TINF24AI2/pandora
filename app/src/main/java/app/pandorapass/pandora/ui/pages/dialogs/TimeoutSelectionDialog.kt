@@ -1,3 +1,5 @@
+package app.pandorapass.pandora.ui.pages.dialogs
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +25,7 @@ fun formatTimeout(seconds: Int): String {
         300 -> "5 Minutes"
         900 -> "15 Minutes"
         1800 -> "30 Minutes"
-        -1 -> "Never" // -1 will represent the "Never clear" option
+        -1 -> "Never" // -1 will represent the "Never" option
         else -> "$seconds Seconds"
     }
 }

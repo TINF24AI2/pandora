@@ -16,7 +16,7 @@ class SettingsDataStore(private val context: Context) {
 
     private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
     private val clipboardTimeoutKey = intPreferencesKey("clipboard_timeout_seconds")
-    private val autoLockTimeoutKey = intPreferencesKey("auto_lock_timeout_minutes")
+    private val autoLockTimeoutKey = intPreferencesKey("auto_lock_timeout_seconds")
 
     val isDarkMode: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -45,9 +45,9 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    suspend fun setAutoLockTimeout(timeoutInMinutes: Int) {
+    suspend fun setAutoLockTimeout(timeoutInSeconds: Int) {
         context.dataStore.edit { settings ->
-            settings[autoLockTimeoutKey] = timeoutInMinutes
+            settings[autoLockTimeoutKey] = timeoutInSeconds
         }
     }
 }

@@ -111,9 +111,9 @@ class SettingsViewModel(
         }
     }
 
-    fun onAutoLockTimeoutChanged(timeoutInMinutes: Int) {
+    fun onAutoLockTimeoutChanged(timeoutInSeconds: Int) {
         viewModelScope.launch {
-            settingsDataStore.setAutoLockTimeout(timeoutInMinutes)
+            settingsDataStore.setAutoLockTimeout(timeoutInSeconds)
         }
     }
 
