@@ -1,5 +1,6 @@
 package app.pandorapass.pandora.logic.services
 
+import android.R
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
@@ -15,7 +16,6 @@ import android.service.autofill.Presentations
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveRequest
 import android.widget.RemoteViews
-import androidx.annotation.RequiresApi
 import androidx.autofill.inline.v1.InlineSuggestionUi
 import app.pandorapass.pandora.PandoraApplication
 import app.pandorapass.pandora.logic.models.LoginVaultEntry
@@ -29,34 +29,40 @@ class PandoraAutofillService : AutofillService() {
         cancellationSignal: CancellationSignal,
         callback: FillCallback
     ) {
-        val context = request.fillContexts.last()
+       val context = request.fillContexts.last()
         val vaultService = (application as PandoraApplication).vaultService
 
         val structure = context.structure
         val parsed = parseStructure(structure)
+
         if (parsed.usernameId == null && parsed.passwordId == null) {
             callback.onSuccess(null)
             return
         }
 
-        val usernameId = parsed.usernameId
-        val passwordId = parsed.passwordId
-
+        // --- FIX 1: Robust Data Preparation ---
+        // 1. Filter out non-login entries
+        // 2. Ensure titles are valid (Fixes the "Blank Square")
+        // 3. Deduplicate based on title+username (Fixes the "Doubled Entries")
         if (VaultSession.isVaultUnlocked()) {
-            val accounts = vaultService.entries.value.map { entry ->
-                if (entry is LoginVaultEntry) AutofillAuthActivity.Account(
-                    entry.title,
-                    entry.username,
-                    entry.password
-                )
-                else AutofillAuthActivity.Account("Unknown", "", "")
-            }
+            val accounts = vaultService.entries.value.asSequence()
+                .filterIsInstance<LoginVaultEntry>()
+                .map { entry ->
+                    val displayTitle = if (entry.title.isBlank()) "Untitled" else entry.title
+                    AutofillAuthActivity.Account(
+                        displayTitle,
+                        entry.username,
+                        entry.password
+                    )
+                }
+                .distinctBy { "${it.label}|${it.username}" } // Prevent Duplicates
+                .toList()
 
             val response = ResponseBuilderHelper.buildResponse(
                 context = this,
                 accounts = accounts,
-                usernameId = usernameId,
-                passwordId = passwordId,
+                usernameId = parsed.usernameId,
+                passwordId = parsed.passwordId,
                 inlineRequest = request.inlineSuggestionsRequest
             )
 
@@ -78,14 +84,11 @@ class PandoraAutofillService : AutofillService() {
         ).intentSender
 
         // Fallback Dropdown UI if the inline representation doesn't work for some reason
-        val dropdownPresentation = RemoteViews(packageName, android.R.layout.simple_list_item_1)
-        dropdownPresentation.setTextViewText(android.R.id.text1, "Unlock Vault")
+        val dropdownPresentation = RemoteViews(packageName, R.layout.simple_list_item_1)
+        dropdownPresentation.setTextViewText(R.id.text1, "Unlock Vault")
 
         // Inline Presentation
-        var inlinePresentation: InlinePresentation? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            inlinePresentation = createInlinePresentation(request, "Unlock Vault")
-        }
+        val inlinePresentation = createInlinePresentation(request, "Unlock Vault")
 
         // The final data set
         val datasetBuilder: Dataset.Builder
@@ -129,12 +132,12 @@ class PandoraAutofillService : AutofillService() {
     }
 
     @SuppressLint("RestrictedApi")
-    @RequiresApi(Build.VERSION_CODES.R)
     private fun createInlinePresentation(request: FillRequest, text: String): InlinePresentation? {
         val inlineRequest = request.inlineSuggestionsRequest ?: return null
         val styles = inlineRequest.inlinePresentationSpecs.firstOrNull() ?: return null
 
-        val pendingIndent = PendingIntent.getActivity(this, 0, Intent(), PendingIntent.FLAG_IMMUTABLE)
+        val pendingIndent =
+            PendingIntent.getActivity(this, text.hashCode(), Intent(), PendingIntent.FLAG_IMMUTABLE)
         val slice = InlineSuggestionUi.newContentBuilder(pendingIndent)
             .setTitle(text)
             .build()

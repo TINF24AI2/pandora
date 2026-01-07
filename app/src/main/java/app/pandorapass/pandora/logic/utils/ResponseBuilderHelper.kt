@@ -1,24 +1,29 @@
 package app.pandorapass.pandora.logic.utils
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.service.autofill.Dataset
 import android.service.autofill.FillResponse
 import android.service.autofill.InlinePresentation
+import android.service.autofill.Presentations
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.widget.RemoteViews
+import androidx.annotation.RequiresApi
 import androidx.autofill.inline.UiVersions
 import androidx.autofill.inline.v1.InlineSuggestionUi
 import app.pandorapass.pandora.ui.activities.AutofillAuthActivity
+import java.util.concurrent.atomic.AtomicInteger
 
 object ResponseBuilderHelper {
-    /**
-     * Builds a FillResponse containing datasets for the given accounts.
-     * Can be called from both the Auth Activity and the AutofillService.
-     */
+    // FIX 2: Atomic Counter for unique Request Codes
+    // This prevents the OS from confusing different slices or dropping them.
+    private val requestCodeCounter = AtomicInteger(1000)
+
     fun buildResponse(
         context: Context,
         accounts: List<AutofillAuthActivity.Account>,
@@ -33,47 +38,55 @@ object ResponseBuilderHelper {
         }
 
         for (account in safeAccounts) {
-            val datasetBuilder = Dataset.Builder()
 
-            // --- Dropdown Presentation ---
-            val dropdownPresentation =
-                RemoteViews(context.packageName, android.R.layout.simple_list_item_1).apply {
-                    setTextViewText(android.R.id.text1, account.label)
-                }
-
-            // We need to attach the presentation to a specific field ID.
-            // Usually, we attach it to the username field, or the password field if username is missing.
-            val presentationId = usernameId ?: passwordId
-            if (presentationId != null) {
-                // Determine the value to fill. If it's the "Vault Empty" placeholder, we might fill nothing or clear it.
-                val fillValue =
-                    if (account.label == "Vault Empty") null else AutofillValue.forText(account.username)
-
-                // Set the presentation for the main field
-                datasetBuilder.setValue(presentationId, fillValue, dropdownPresentation)
+            // 1. Prepare Dropdown View
+            val dropdownPresentation = RemoteViews(context.packageName, android.R.layout.simple_list_item_1).apply {
+                setTextViewText(android.R.id.text1, account.label)
             }
 
-            // --- 2. Inline Presentation (Keyboard Strip) ---
+            // 2. Prepare Inline View
+            var inlinePresentation: InlinePresentation? = null
             if (inlineRequest != null) {
                 val inlineTitle = if (account.label == "Vault Empty") "Empty" else account.label
-                val inlineSubtitle =
-                    if (account.label == "Vault Empty") "No items" else account.username
+                val inlineSubtitle = if (account.label == "Vault Empty") "No items" else account.username
+                inlinePresentation = createInline(context, inlineRequest, inlineTitle, inlineSubtitle)
+            }
 
-                val inlinePresentation =
-                    createInline(context, inlineRequest, inlineTitle, inlineSubtitle)
+            val datasetBuilder: Dataset.Builder
 
-                if (inlinePresentation != null && presentationId != null) {
-                    datasetBuilder.setInlinePresentation(inlinePresentation, inlinePresentation)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // API 33+ (Android 13)
+                val presentationsBuilder = Presentations.Builder()
+                    .setMenuPresentation(dropdownPresentation)
+                    .setDialogPresentation(dropdownPresentation)
+
+                if (inlinePresentation != null) {
+                    presentationsBuilder.setInlinePresentation(inlinePresentation)
+                }
+
+                datasetBuilder = Dataset.Builder(presentationsBuilder.build())
+
+            } else {
+                // API < 33 (Android 12)
+                // If we have a valid inline presentation, we construct the builder with the dropdown
+                // but immediately attach the inline version.
+                datasetBuilder = Dataset.Builder(dropdownPresentation)
+
+                if (inlinePresentation != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    datasetBuilder.setInlinePresentation(inlinePresentation)
                 }
             }
 
-            // We skip setting values if it's the "Vault Empty" placeholder to avoid overwriting user text
+            // 3. Set Values
             if (account.label != "Vault Empty") {
-                if (usernameId != null && account.username.isNotEmpty()) {
-                    datasetBuilder.setValue(usernameId, AutofillValue.forText(account.username))
+                val uValue = if (account.username.isNotEmpty()) AutofillValue.forText(account.username) else null
+                val pValue = if (account.password.isNotEmpty()) AutofillValue.forText(account.password) else null
+
+                if (usernameId != null && uValue != null) {
+                    datasetBuilder.setValue(usernameId, uValue)
                 }
-                if (passwordId != null && account.password.isNotEmpty()) {
-                    datasetBuilder.setValue(passwordId, AutofillValue.forText(account.password))
+                if (passwordId != null && pValue != null) {
+                    datasetBuilder.setValue(passwordId, pValue)
                 }
             }
 
@@ -83,27 +96,25 @@ object ResponseBuilderHelper {
         return responseBuilder.build()
     }
 
-    /**
-     * Helper to create the Slice for the keyboard suggestion strip.
-     * Uses androidx libraries to handle the UI styling automatically.
-     */
+    @SuppressLint("RestrictedApi")
     private fun createInline(
         context: Context,
         inlineRequest: InlineSuggestionsRequest,
         title: String,
         subtitle: String
     ): InlinePresentation? {
-        // Iterate through the specs provided by the keyboard (Gboard, Samsung Keyboard, etc.)
-        // We look for the first spec that supports "Version 1" (the standard Android UI style)
+
         val validSpec = inlineRequest.inlinePresentationSpecs.firstOrNull { spec ->
             UiVersions.getVersions(spec.style).contains(UiVersions.INLINE_UI_VERSION_1)
         } ?: return null
 
-        // Create the PendingIntent (required by API)
-        val intent = Intent()
+        val intent = Intent() // Intent is unused for filling, but required for the builder
+
+        val uniqueRequestCode = requestCodeCounter.getAndIncrement()
+
         val pendingIntent = PendingIntent.getActivity(
             context,
-            0,
+            uniqueRequestCode,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -113,12 +124,10 @@ object ResponseBuilderHelper {
             .setSubtitle(subtitle)
             .build()
 
-        // 4. Return the presentation
-        // crucial: We must pass back the specific 'validSpec' we found earlier
         return InlinePresentation(
             content.slice,
             validSpec,
-            true
+            true // Pin to start
         )
     }
 }

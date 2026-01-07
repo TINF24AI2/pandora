@@ -1,5 +1,6 @@
 package app.pandorapass.pandora.ui.activities
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
@@ -13,15 +14,27 @@ import android.view.inputmethod.InlineSuggestionsRequest
 import android.widget.RemoteViews
 import androidx.activity.compose.setContent
 import androidx.autofill.inline.v1.InlineSuggestionUi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.pandorapass.pandora.PandoraApplication
+import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.logic.services.VaultService
 import app.pandorapass.pandora.ui.pages.LoginView
+import app.pandorapass.pandora.ui.pages.PandoraApp
+import app.pandorapass.pandora.ui.viewmodels.AppState
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
 
@@ -52,19 +65,47 @@ class AutofillAuthActivity : FragmentActivity() {
             val factory = TestVaultViewModelFactory(vaultService!!)
             val viewModel: TestVaultViewModel = viewModel(factory = factory)
 
-            // Simple Unlock UI
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            val context = LocalContext.current
+            val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper
 
-                LoginView(
-                    onSubmit = {
-                        viewModel.unlockVaultWithPassword(it) { onSuccess() }
+            val appState by viewModel.appState.collectAsState()
+            val error by viewModel.error.collectAsState()
+
+            val biometricStorage = BiometricTokenStorage(context)
+            if (biometricStorage.isBiometricEnabled() && appState == AppState.LOCKED) {
+                biometricCryptoHelper.showBiometricUnlock(
+                    activity = this,
+                    application = application as PandoraApplication,
+                    onSuccess = { decryptedMasterKey ->
+                        run {
+                            viewModel.unlockVaultWithKey(decryptedMasterKey) {
+                                onSuccess()
+                            }
+                        }
                     }
                 )
+
+                return@setContent
             }
+
+            if (error != null) {
+                Text(
+                    text = error!!,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Red)
+                        .padding(8.dp)
+                        .zIndex(1f)
+                        .statusBarsPadding()
+                )
+            }
+
+            LoginView(
+                onSubmit = {
+                    viewModel.unlockVaultWithPassword(it) { onSuccess() }
+                }
+            )
         }
     }
 
@@ -110,6 +151,7 @@ class AutofillAuthActivity : FragmentActivity() {
         finish()
     }
 
+    @SuppressLint("RestrictedApi")
     private fun createInline(title: String, subtitle: String): InlinePresentation? {
         val request = inlineRequest ?: return null
         val styles = request.inlinePresentationSpecs.firstOrNull() ?: return null
