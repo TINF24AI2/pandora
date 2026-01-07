@@ -48,6 +48,7 @@ import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import java.util.Date
 import android.content.Context
+import androidx.compose.foundation.layout.size
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
@@ -346,14 +347,24 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
                             if (!showPassword) PasswordVisualTransformation()
                             else VisualTransformation.None,
                         trailingIcon = {
-                            IconButton(onClick = { showPassword = !showPassword }) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(
-                                        if (showPassword) R.drawable.eye_slash_24_outlined
-                                        else R.drawable.eye_24_outlined
-                                    ),
-                                    contentDescription = null
-                                )
+                            Row(modifier = Modifier.padding(end = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = {newPassword = generatePassword(true, true, true, true, 16.0F)}) {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.arrow_path),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                IconButton(onClick = { showPassword = !showPassword }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(
+                                            if (showPassword) R.drawable.eye_slash_24_outlined
+                                            else R.drawable.eye_24_outlined
+                                        ),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         },
                         singleLine = true
