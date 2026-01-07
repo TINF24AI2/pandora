@@ -45,7 +45,6 @@ import app.pandorapass.pandora.ui.pages.dialogs.TimeoutSelectionDialog
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.pages.dialogs.formatTimeout
 
-@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(

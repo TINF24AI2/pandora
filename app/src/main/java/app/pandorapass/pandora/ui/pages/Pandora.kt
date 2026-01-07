@@ -60,20 +60,15 @@ fun PandoraApp(
             }
         }
     ) {
-
-            // Define your NavHost
             NavHost(navController = navController, startDestination = "home") {
-                composable("home") {  PasswordPage(Modifier.safeContentPadding(), viewModel) }
+                composable("home") {  PasswordPage(Modifier.safeContentPadding(), viewModel, settingsViewModel) }
                 composable("settings") { SettingsPage(Modifier.safeContentPadding(), viewModel, settingsViewModel) }
-                // ... other destinations
+                // there are some routes missing here but as long as we don't need to navigate there manually, we can omit them here
             }
 
-            // THE MAGIC MOMENT:
-            // This block runs immediately after the NavHost is composed.
             LaunchedEffect(Unit) {
                 if (startPage == "settings") {
                     navController.navigate("settings") {
-                        // Optional: Clears back stack so "Back" goes to Home, not exits app
                         popUpTo("home")
                     }
                 }
