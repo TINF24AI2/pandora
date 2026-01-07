@@ -77,7 +77,7 @@ fun GeneratePage(
     var checkedSpecial by remember { mutableStateOf(true) }
 
     // Slider state for password length
-    var sliderPosition by remember { mutableFloatStateOf(0f) }
+    var sliderPosition by remember { mutableFloatStateOf(8f) }
 
     // Holds the generated password
     var password by remember { mutableStateOf("") }
@@ -183,8 +183,8 @@ fun GeneratePage(
                         onValueChange = { value ->
                             sliderPosition = value.roundToInt().toFloat()
                         },
-                        valueRange = 0f..50f,
-                        steps = 49
+                        valueRange = 4f..50f,
+                        steps = 45
                     )
                 }
             }
@@ -196,25 +196,30 @@ fun GeneratePage(
                     IncludeItem(
                         title = "Uppercase Letters (A-Z)",
                         checked = checkedUppercaseLetters,
-                        onCheckedChange = { checkedUppercaseLetters = it }
+                        onCheckedChange = { if(canBeDisabled(checkedUppercaseLetters, listOf(checkedLowercaseLetters, checkedNumbers, checkedSpecial))) {
+                            checkedUppercaseLetters = it } }
                     )
 
                     IncludeItem(
                         title = "Lowercase Letters (a-z)",
                         checked = checkedLowercaseLetters,
-                        onCheckedChange = { checkedLowercaseLetters = it }
+                        onCheckedChange = { if(canBeDisabled(checkedLowercaseLetters, listOf(checkedUppercaseLetters, checkedNumbers, checkedSpecial))){
+                            checkedLowercaseLetters = it } }
                     )
 
                     IncludeItem(
                         title = "Numbers (0-9)",
                         checked = checkedNumbers,
-                        onCheckedChange = { checkedNumbers = it }
+                        onCheckedChange = { if(canBeDisabled(checkedNumbers, listOf(checkedUppercaseLetters, checkedLowercaseLetters, checkedSpecial))) {
+                            checkedNumbers = it
+                        } }
                     )
 
                     IncludeItem(
                         title = "Special Characters (!@#\$%^&*()-_=+[]{};:,.<>?/\\)",
                         checked = checkedSpecial,
-                        onCheckedChange = { checkedSpecial = it }
+                        onCheckedChange = { if(canBeDisabled(checkedSpecial, listOf(checkedUppercaseLetters, checkedLowercaseLetters, checkedNumbers))){
+                            checkedSpecial = it } }
                     )
                 }
             }
@@ -267,8 +272,6 @@ fun generatePassword(
     // 3. Shuffle using the secure random source
     passwordChars.shuffle(secureRandom)
 
-    // 4. Handle edge case where selected categories > requested length
-    // (Optional: currently it returns the longer password, which is safer)
     return passwordChars.joinToString("")
 }
 /**
@@ -407,4 +410,11 @@ fun IncludeItem(
             modifier = Modifier.padding(start = 56.dp) // Align with text start
         )
     }
+}
+
+fun canBeDisabled (
+    current : Boolean,
+    others : List <Boolean>) : Boolean{
+    // Check if at least one checkbox will remain enabled if this one is disabled
+    return !current || others.any {it}
 }
