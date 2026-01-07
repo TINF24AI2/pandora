@@ -1,4 +1,4 @@
-package app.pandorapass.pandora.ui.pages
+package app.pandorapass.pandora.ui.activities
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
