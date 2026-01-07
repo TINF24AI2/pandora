@@ -38,7 +38,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import app.pandorapass.pandora.PandoraApplication
 import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import app.pandorapass.pandora.logic.models.FileVaultRepository
@@ -50,6 +53,10 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
+import app.pandorapass.pandora.logic.workers.AutoLockWorker
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.first
 
 class MainActivity : FragmentActivity() {
 
@@ -60,8 +67,23 @@ class MainActivity : FragmentActivity() {
         )
     }
 
+    private val testVaultViewModel: TestVaultViewModel by viewModels {
+        val repository = FileVaultRepository(applicationContext)
+        val cryptoService = CryptoServiceImpl()
+        val vaultService = VaultServiceImpl(cryptoService, repository)
+        TestVaultViewModelFactory(vaultService)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                (application as PandoraApplication).lockEvent.collect {
+                    testVaultViewModel.lockVault()
+                }
+            }
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -69,13 +91,9 @@ class MainActivity : FragmentActivity() {
 
             PandoraTheme(darkTheme = isDarkMode) {
                 val context = LocalContext.current
-                val repository = FileVaultRepository(applicationContext)
-                val cryptoService = CryptoServiceImpl()
-                val vaultService = VaultServiceImpl(cryptoService, repository)
                 val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper
 
-                val factory = TestVaultViewModelFactory(vaultService)
-                val viewModel: TestVaultViewModel = viewModel(factory = factory)
+                val viewModel = testVaultViewModel
                 val appState by viewModel.appState.collectAsState()
                 val error by viewModel.error.collectAsState()
 
@@ -120,6 +138,53 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        scheduleAutoLock()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        cancelAutoLock()
+    }
+
+    private fun scheduleAutoLock() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        lifecycleScope.launch {
+            val currentAppState = testVaultViewModel.appState.value
+            if (currentAppState == AppState.LOCKED) {
+                return@launch // State is already locked, do nothing.
+            }
+
+            val timeoutValue = settingsViewModel.autoLockTimeout.first()
+            if (timeoutValue == -1) {
+                return@launch // User selected "Never", so do nothing.
+            }
+            // Stop further execution for the "Instant" case
+            if (timeoutValue == 0) {
+                testVaultViewModel.lockVault()
+                return@launch
+            }
+
+            if (timeoutValue > 0) {
+                val autoLockWorkRequest = OneTimeWorkRequestBuilder<AutoLockWorker>()
+                    .setInitialDelay(timeoutValue.toLong(), TimeUnit.SECONDS)
+                    .build()
+
+                workManager.enqueueUniqueWork(
+                    AutoLockWorker.WORK_NAME,
+                    androidx.work.ExistingWorkPolicy.REPLACE, // Replace any old timer
+                    autoLockWorkRequest
+                )
+            }
+        }
+    }
+
+    private fun cancelAutoLock() {
+        WorkManager.getInstance(applicationContext).cancelUniqueWork(AutoLockWorker.WORK_NAME)
     }
 }
 

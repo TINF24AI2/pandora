@@ -41,7 +41,9 @@ import androidx.fragment.app.FragmentActivity
 import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
+import app.pandorapass.pandora.ui.pages.dialogs.TimeoutSelectionDialog
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
+import app.pandorapass.pandora.ui.pages.dialogs.formatTimeout
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,13 +65,51 @@ fun SettingsPage(
     val clipboardTimeout by settingsViewModel.clipboardTimeout.collectAsState()
     var showClipboardDialog by remember { mutableStateOf(false) }
 
+    val autoLockTimeout by settingsViewModel.autoLockTimeout.collectAsState()
+    var showAutoLockDialog by remember { mutableStateOf(false) }
+
     if (showClipboardDialog) {
-        ClipboardTimeoutDialog(
+        TimeoutSelectionDialog(
+            title = "Clear clipboard after",
             currentTimeout = clipboardTimeout,
+            options = listOf(30, 60, 300, -1),
+            formatLabel = { seconds ->
+                when (seconds) {
+                    30 -> "30 Seconds"
+                    60 -> "1 Minute"
+                    300 -> "5 Minutes"
+                    -1 -> "Never"
+                    else -> "$seconds Seconds"
+                }
+            },
             onDismiss = { showClipboardDialog = false },
             onConfirm = { newTimeout ->
                 settingsViewModel.onClipboardTimeoutChanged(newTimeout)
                 showClipboardDialog = false
+            }
+        )
+    }
+
+    if (showAutoLockDialog) {
+        TimeoutSelectionDialog(
+            title = "Automatically lock after",
+            currentTimeout = autoLockTimeout,
+            options = listOf(0, 60, 300, 900, 1800, -1),
+            formatLabel = { seconds ->
+                when (seconds) {
+                    0 -> "Instant"
+                    60 -> "1 Minute"
+                    300 -> "5 Minutes"
+                    900 -> "15 Minutes"
+                    1800 -> "30 Minutes"
+                    -1 -> "Never"
+                    else -> "$seconds Seconds"
+                }
+            },
+            onDismiss = { showAutoLockDialog = false },
+            onConfirm = { newTimeout ->
+                settingsViewModel.onAutoLockTimeoutChanged(newTimeout)
+                showAutoLockDialog = false
             }
         )
     }
@@ -170,8 +210,8 @@ fun SettingsPage(
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.lock_closed_24_outlined),
                         title = "Automatically lock after...",
-                        subtitle = "15 Minutes",
-                        onClick = { /* TODO: Handle Change Password click */ }
+                        subtitle = formatTimeout(autoLockTimeout),
+                        onClick = { showAutoLockDialog = true }
                     )
                     SettingsItem(
                         icon = ImageVector.vectorResource(R.drawable.clipboard_24_outlined),
