@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -28,8 +29,22 @@ class TestVaultViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
     val vaultEntries: StateFlow<List<VaultEntry>> = vaultService.entries
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val filteredPasswords: StateFlow<List<LoginVaultEntry>> =
+        combine(vaultEntries, _searchQuery) { entries, query ->
+            entries.filterIsInstance<LoginVaultEntry>().filter { entry ->
+                entry.urls?.any { it.contains(query, ignoreCase = true) } == true ||
+                        entry.username.contains(query, ignoreCase = true) ||
+                        entry.title.contains(query, ignoreCase = true)
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun updateSearchQuery(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
 
     init {
         checkVaultStatus()
