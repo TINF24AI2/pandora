@@ -38,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.utils.BiometricHelper
 import app.pandorapass.pandora.ui.pages.dialogs.TimeoutSelectionDialog
@@ -50,7 +50,7 @@ import app.pandorapass.pandora.ui.pages.dialogs.formatTimeout
 @Composable
 fun SettingsPage(
     modifier: Modifier = Modifier,
-    testVaultViewModel: TestVaultViewModel,
+    vaultViewModel: VaultViewModel,
     settingsViewModel: SettingsViewModel
 ) {
     val context = LocalContext.current
@@ -224,7 +224,7 @@ fun SettingsPage(
                         title = "Lock now",
                         withTrailingIcon = false,
                         isLastItem = true,
-                        onClick = { testVaultViewModel.lockVault() }
+                        onClick = { vaultViewModel.lockVault() }
                     )
                 }
             }

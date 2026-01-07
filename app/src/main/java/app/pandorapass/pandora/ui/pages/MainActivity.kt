@@ -51,8 +51,8 @@ import app.pandorapass.pandora.ui.theme.PandoraTheme
 import app.pandorapass.pandora.ui.viewmodels.AppState
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModelFactory
 import app.pandorapass.pandora.logic.workers.AutoLockWorker
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -67,11 +67,11 @@ class MainActivity : FragmentActivity() {
         )
     }
 
-    private val testVaultViewModel: TestVaultViewModel by viewModels {
+    private val vaultViewModel: VaultViewModel by viewModels {
         val repository = FileVaultRepository(applicationContext)
         val cryptoService = CryptoServiceImpl()
         val vaultService = VaultServiceImpl(cryptoService, repository)
-        TestVaultViewModelFactory(vaultService)
+        VaultViewModelFactory(vaultService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,7 +80,7 @@ class MainActivity : FragmentActivity() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 (application as PandoraApplication).lockEvent.collect {
-                    testVaultViewModel.lockVault()
+                    vaultViewModel.lockVault()
                 }
             }
         }
@@ -93,7 +93,7 @@ class MainActivity : FragmentActivity() {
                 val context = LocalContext.current
                 val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper
 
-                val viewModel = testVaultViewModel
+                val viewModel = vaultViewModel
                 val appState by viewModel.appState.collectAsState()
                 val error by viewModel.error.collectAsState()
 
@@ -154,7 +154,7 @@ class MainActivity : FragmentActivity() {
         val workManager = WorkManager.getInstance(applicationContext)
 
         lifecycleScope.launch {
-            val currentAppState = testVaultViewModel.appState.value
+            val currentAppState = vaultViewModel.appState.value
             if (currentAppState == AppState.LOCKED) {
                 return@launch // State is already locked, do nothing.
             }
@@ -165,7 +165,7 @@ class MainActivity : FragmentActivity() {
             }
             // Stop further execution for the "Instant" case
             if (timeoutValue == 0) {
-                testVaultViewModel.lockVault()
+                vaultViewModel.lockVault()
                 return@launch
             }
 

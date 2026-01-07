@@ -19,7 +19,7 @@ enum class AppState {
     LOADING, SETUP, LOCKED, UNLOCKED
 }
 
-class TestVaultViewModel(
+class VaultViewModel(
     private val vaultService: VaultService
 ) : ViewModel() {
 
