@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -76,6 +77,7 @@ fun PasswordPage(
     var showPasswordEntry by remember { mutableStateOf(false) }
     var id by remember { mutableStateOf("") }
     val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
@@ -145,118 +147,88 @@ fun PasswordPage(
         }
     }
     if (addPassword) {
-        AddPassword(viewModel, { addPassword = false })
+        AddPassword(viewModel) { addPassword = false }
     }
     if (showPasswordEntry) {
-        ShowEntry(viewModel, id, settingsViewModel, { showPasswordEntry = false })
+        ShowEntry(viewModel, id, settingsViewModel) { showPasswordEntry = false }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CopyableTextField(
-    modifier: Modifier = Modifier,
-    label: String,
-    text: String
-) {
-    val clipboard: ClipboardManager =
-        LocalContext.current.getSystemService(ClipboardManager::class.java)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label)
-        OutlinedTextField(
-            value = text,
-            onValueChange = {},
-            modifier = modifier.fillMaxWidth(),
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = {
-                    clipboard.setPrimaryClip(
-                        ClipData.newPlainText(label, text)
-                    )
-                }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.square_2_stack_24_outlined),
-                        contentDescription = "Copy"
-                    )
-                }
-            },
-            singleLine = true
+private fun InfoListItem(label: String, value: String, trailingContent: @Composable () -> Unit) {
+    ListItem(
+        headlineContent = { Text(value) },
+        overlineContent = { Text(label) },
+        trailingContent = trailingContent,
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
         )
-    }
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CopyablePasswordField(
-    modifier: Modifier = Modifier,
-    label: String,
-    text: String,
-    settingsViewModel: SettingsViewModel
-) {
+private fun PasswordInfoListItem(settingsViewModel: SettingsViewModel, password: String) {
     val context = LocalContext.current
     val clipboardTimeoutSeconds by settingsViewModel.clipboardTimeout.collectAsState(initial = 15)
     var visible by rememberSaveable { mutableStateOf(false) }
+    val visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation()
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label)
-        OutlinedTextField(
-            value = text,
-            onValueChange = {},
-            modifier = modifier.fillMaxWidth(),
-            readOnly = true,
-            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                Row {
-                    IconButton(onClick = { visible = !visible }) {
-                        if (visible) Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined),
-                            contentDescription = ""
-                        )
-                        else Icon(
-                            ImageVector.vectorResource(R.drawable.eye_24_outlined),
-                            contentDescription = ""
-                        )
-                    }
-                    IconButton(onClick = {
-                        val clipboardManager =
-                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText(label, text)
-                        clipboardManager.setPrimaryClip(clip)
-                        // Optionally add a Toast message here
-
-                        // b. Schedule the clipboard to be cleared using WorkManager
-                        val timeoutSeconds = clipboardTimeoutSeconds
-                        val workManager = WorkManager.getInstance(context)
-
-                        // c. Always cancel any previously scheduled work to reset the timer
-                        workManager.cancelUniqueWork(ClipboardClearWorker.WORK_NAME)
-
-                        // d. Only schedule new work if the timeout is not "Never" (-1)
-                        if (timeoutSeconds > 0) {
-                            val clearClipboardWorkRequest =
-                                OneTimeWorkRequestBuilder<ClipboardClearWorker>()
-                                    .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS)
-                                    .build()
-
-                            workManager.enqueueUniqueWork(
-                                ClipboardClearWorker.WORK_NAME,
-                                androidx.work.ExistingWorkPolicy.REPLACE, // Replace old timer
-                                clearClipboardWorkRequest
-                            )
-                        }
-                    }) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(
-                                R.drawable.square_2_stack_24_outlined
-                            ),
-                            contentDescription = "Copy"
-                        )
-                    }
+    ListItem(
+        headlineContent = {
+            Text(
+                text = visualTransformation.filter(AnnotatedString(password)).text.toString(),
+            )
+        },
+        overlineContent = { Text("Password") },
+        trailingContent = {
+            Row {
+                IconButton(onClick = { visible = !visible }) {
+                    if (visible) Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined),
+                        contentDescription = "Hide password"
+                    )
+                    else Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.eye_24_outlined),
+                        contentDescription = "Show password"
+                    )
                 }
-            },
-            singleLine = true
+                IconButton(onClick = {
+                    val clipboardManager =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Password", password)
+                    clipboardManager.setPrimaryClip(clip)
+
+                    val timeoutSeconds = clipboardTimeoutSeconds
+                    val workManager = WorkManager.getInstance(context)
+
+                    workManager.cancelUniqueWork(ClipboardClearWorker.WORK_NAME)
+
+                    if (timeoutSeconds > 0) {
+                        val clearClipboardWorkRequest =
+                            OneTimeWorkRequestBuilder<ClipboardClearWorker>()
+                                .setInitialDelay(timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                                .build()
+
+                        workManager.enqueueUniqueWork(
+                            ClipboardClearWorker.WORK_NAME,
+                            androidx.work.ExistingWorkPolicy.REPLACE,
+                            clearClipboardWorkRequest
+                        )
+                    }
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(
+                            R.drawable.square_2_stack_24_outlined
+                        ),
+                        contentDescription = "Copy"
+                    )
+                }
+            }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
         )
-    }
+    )
 }
 
 
@@ -273,39 +245,117 @@ fun ShowEntry(
         entries.filterIsInstance<LoginVaultEntry>().find { it.id == id } ?: LoginVaultEntry(
             id, "Something went wrong...", "", "", "", null, Date(), Date()
         )
+    val context = LocalContext.current
+    val clipboard: ClipboardManager = context.getSystemService(ClipboardManager::class.java)
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = Modifier.fillMaxSize(),
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        sheetGesturesEnabled = false,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         tonalElevation = 6.dp
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+            Text("View Login", style = MaterialTheme.typography.titleMedium)
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(loginEntry.title)
-                CopyableTextField(label = "Username", text = loginEntry.username)
-                CopyablePasswordField(
-                    label = "Password",
-                    text = loginEntry.password,
-                    settingsViewModel = settingsViewModel // Pass it here
+                ListItem(
+                    headlineContent = { Text(loginEntry.title) },
+                    leadingContent = {
+                        Avatar(
+                            modifier = Modifier.size(40.dp),
+                            text = if (loginEntry.title.isNotEmpty()) loginEntry.title.first().toString() else ""
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-                loginEntry.urls?.forEach { url ->
-                    CopyableTextField(label = "URL", text = url)
-                }
-                CopyableTextField(label = "Notes", text = loginEntry.notes ?: "")
-                Button(onClick = { viewModel.deleteEntry(id); onDismiss() }) { Text("Delete") }
             }
+
+            Text("Credentials", style = MaterialTheme.typography.titleSmall, modifier = Modifier.fillMaxWidth())
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Column {
+                    InfoListItem(
+                        label = "Username",
+                        value = loginEntry.username,
+                        trailingContent = {
+                            IconButton(onClick = {
+                                clipboard.setPrimaryClip(ClipData.newPlainText("Username", loginEntry.username))
+                            }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.square_2_stack_24_outlined),
+                                    contentDescription = "Copy"
+                                )
+                            }
+                        }
+                    )
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    PasswordInfoListItem(settingsViewModel = settingsViewModel, password = loginEntry.password)
+
+                }
+            }
+
+            if (loginEntry.urls?.isNotEmpty() == true || loginEntry.notes?.isNotBlank() == true) {
+                Text("Other Information", style = MaterialTheme.typography.titleSmall, modifier = Modifier.fillMaxWidth())
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Column {
+                        loginEntry.urls?.forEach { url ->
+                            InfoListItem(
+                                label = "Website URL",
+                                value = url,
+                                trailingContent = {
+                                    IconButton(onClick = {
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("URL", url))
+                                    }) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.square_2_stack_24_outlined),
+                                            contentDescription = "Copy"
+                                        )
+                                    }
+                                }
+                            )
+                            if (loginEntry.urls.last() != url || loginEntry.notes?.isNotBlank() == true) {
+                                Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                        }
+                        if (loginEntry.notes?.isNotBlank() == true) {
+                            InfoListItem(
+                                label = "Notes",
+                                value = loginEntry.notes!!,
+                                trailingContent = {
+                                    IconButton(onClick = {
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("Notes", loginEntry.notes))
+                                    }) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.square_2_stack_24_outlined),
+                                            contentDescription = "Copy"
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            Button(onClick = { viewModel.deleteEntry(id); onDismiss() }) { Text("Delete") }
         }
     }
 }
@@ -370,8 +420,8 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
                         onValueChange = { newPassword = it },
                         label = { Text("Password") },
                         visualTransformation =
-                            if (!showPassword) PasswordVisualTransformation()
-                            else VisualTransformation.None,
+                        if (!showPassword) PasswordVisualTransformation()
+                        else VisualTransformation.None,
                         trailingIcon = {
                             Row(
                                 modifier = Modifier.padding(end = 10.dp),
