@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.Pandora" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_dark_transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.Pandora</item>
+    </style>
 </resources>
