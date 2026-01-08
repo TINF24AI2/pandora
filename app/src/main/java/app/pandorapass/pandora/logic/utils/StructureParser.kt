@@ -4,7 +4,7 @@ import android.app.assist.AssistStructure
 import android.view.autofill.AutofillId
 
 /**
- * Parses a structure (the view when entering an typable field)
+ * Parses a structure (the view when entering a typable field)
  */
 object StructureParser {
      data class ParsedStructure(
@@ -16,7 +16,7 @@ object StructureParser {
     )
 
     /**
-     * Parses the current structure (the view when entering an typable field) to look for
+     * Parses the current structure (the view when entering a typable field) to look for
      * relevant fields (fields that can be auto-completed).
      *
      * @param structure The structure

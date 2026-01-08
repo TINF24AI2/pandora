@@ -63,7 +63,8 @@ class AutofillAuthActivity : FragmentActivity() {
         vaultService = (application as PandoraApplication).vaultService
 
         setContent {
-            val factory = VaultViewModelFactory(vaultService!!)
+            val vaultServiceLocal = vaultService ?: return@setContent
+            val factory = VaultViewModelFactory(vaultServiceLocal)
             val viewModel: VaultViewModel = viewModel(factory = factory)
 
             val context = LocalContext.current
@@ -91,7 +92,7 @@ class AutofillAuthActivity : FragmentActivity() {
 
             if (error != null) {
                 Text(
-                    text = error!!,
+                    text = error ?: "Unknown Error",
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()

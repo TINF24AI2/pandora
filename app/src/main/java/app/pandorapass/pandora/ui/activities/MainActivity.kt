@@ -55,9 +55,6 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val startPage = if (intent.component?.className == "$packageName.SettingsPage")
-            "settings" else "home"
-
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 (application as PandoraApplication).lockEvent.collect {
@@ -116,7 +113,7 @@ class MainActivity : FragmentActivity() {
                         onSubmit = { viewModel.unlockVaultWithPassword(it) }
                     )
 
-                    AppState.UNLOCKED -> PandoraApp(startPage, viewModel, settingsViewModel)
+                    AppState.UNLOCKED -> PandoraApp(viewModel, settingsViewModel)
                 }
             }
         }
