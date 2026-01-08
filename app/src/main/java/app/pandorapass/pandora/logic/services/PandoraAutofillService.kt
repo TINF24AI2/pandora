@@ -65,6 +65,10 @@ class PandoraAutofillService : AutofillService() {
                 }
                 .distinctBy { "${it.label}|${it.username}" } // Prevent Duplicates
                 .toList()
+            if (accounts.isEmpty()) {
+                callback.onSuccess(null)
+                return
+            }
 
             val response = ResponseBuilderHelper.buildResponse(
                 context = this,
