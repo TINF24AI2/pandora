@@ -23,20 +23,24 @@ class VaultLifecycleObserver(private val context: Context) : DefaultLifecycleObs
             val diff = now.time - backgroundedTime!!.time
 
             CoroutineScope(Dispatchers.Main).launch {
-                val autoLockTimeout = settingsDataStore.autoLockTimeout.first()
+                val backgroundedAt = backgroundedTime
+                backgroundedTime = null
 
-                if (autoLockTimeout == 0) {
-                    VaultSession.clear()
-                    (context.applicationContext as? PandoraApplication)?.triggerLockEvent()
-                } else if (autoLockTimeout > 0) {
-                    val autoLockTimeoutMs = autoLockTimeout * 1000L
-                    if (diff > autoLockTimeoutMs) {
+                if (backgroundedAt != null) {
+                    val autoLockTimeout = settingsDataStore.autoLockTimeout.first()
+                    if (autoLockTimeout == 0) {
                         VaultSession.clear()
                         (context.applicationContext as? PandoraApplication)?.triggerLockEvent()
+                    } else if (autoLockTimeout > 0) {
+                        val now = Date()
+                        val diff = now.time - backgroundedAt.time
+                        val autoLockTimeoutMs = autoLockTimeout * 1000L
+                        if (diff > autoLockTimeoutMs) {
+                            VaultSession.clear()
+                            (context.applicationContext as? PandoraApplication)?.triggerLockEvent()
+                        }
                     }
                 }
-
-                backgroundedTime = null
             }
         }
     }

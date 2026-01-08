@@ -68,5 +68,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.lifecycle:lifecycle-process")
+    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
 }
