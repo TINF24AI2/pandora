@@ -48,8 +48,8 @@ To get this project running on your local machine, follow these steps:
 
 1.  **Prerequisites:**
     *   Android Studio (latest stable version recommended, e.g., Otter or newer)
-    *   Android SDK API Level 26+
-    *   An Android emulator or device, preferably with Android 11 or later (for running the app). Note: the minimum required version is Android 8, however, Android 11 or later is highly advised.
+    *   Android SDK API Level 30+
+    *   An Android emulator or device with Android 11 or later, preferably with Android 16 (for running the app).
 
 2.  **Clone the repository:**
 
