@@ -50,12 +50,3 @@ To get this project running on your local machine, follow these steps:
     * Select an emulator or a physical Android device. (running Android 11 or later)
     * Click the **Run 'app'** button (▶️) in the toolbar.
 
-## 🎓 Project Context
-
-This application was developed as a part of a university course on mobile application development.
-The primary goals were to demonstrate proficiency in:
-
-* Modern Android development practices (Jetpack Compose, MVVM).
-* Implementing secure authentication and data handling.
-* Designing a clean and intuitive user interface following Material Design principles.
-* Managing project dependencies and build configurations with Gradle.
