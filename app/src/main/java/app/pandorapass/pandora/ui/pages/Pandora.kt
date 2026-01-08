@@ -25,12 +25,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 
 @Composable
 fun PandoraApp(
     startPage: String,
-    viewModel: TestVaultViewModel,
+    viewModel: VaultViewModel,
     settingsViewModel: SettingsViewModel,
     navController: NavHostController = rememberNavController()
 ) {

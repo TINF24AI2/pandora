@@ -45,7 +45,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.logic.models.LoginVaultEntry
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import java.util.Date
 import android.content.Context
 import androidx.work.OneTimeWorkRequestBuilder
@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun PasswordPage(
     modifier: Modifier,
-    viewModel: TestVaultViewModel,
+    viewModel: VaultViewModel,
     settingsViewModel: SettingsViewModel
 ) {
     val query by viewModel.searchQuery.collectAsState()
@@ -236,7 +236,7 @@ fun CopyablePasswordField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowEntry(
-    viewModel: TestVaultViewModel,
+    viewModel: VaultViewModel,
     id: String,
     settingsViewModel: SettingsViewModel,
     onDismiss: () -> Unit
@@ -285,7 +285,7 @@ fun ShowEntry(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPassword(viewModel: TestVaultViewModel, onDismiss: () -> Unit) {
+fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
     var showPassword by remember { mutableStateOf(false) }
 
     var newUsername by remember { mutableStateOf("") }
