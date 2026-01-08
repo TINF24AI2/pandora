@@ -24,6 +24,8 @@ The application's settings screen demonstrates several core features of the app:
     * **Android Autofill Integration**: Ability to automatically fill in your username and password
       in a login form using the Android Autofill API. Just select Pandora as your preferred Autofill
       service in the settings and you are good to go.
+    * **haveibeenpwned.com Leak Check**: Check whether your passwords appear in known data breaches 
+      using the integrated haveibeenpwned.com API. Click the icon next to a password to start the check.
 * **User-Friendly:**
     * **Intuitive Settings:** A well-organized settings page to easily manage app preferences.
 
