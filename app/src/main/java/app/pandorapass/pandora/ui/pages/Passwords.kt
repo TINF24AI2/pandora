@@ -108,7 +108,15 @@ fun PasswordPage(
                 active = false,
                 onActiveChange = {},
                 placeholder = { Text("Search your passwords") },
-                leadingIcon = { ImageVector.vectorResource(if (isDarkMode) R.drawable.moon_24_outlined else R.drawable.sun_24_outlined) }
+                leadingIcon = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(
+                            R.drawable.search_24_outline
+                        ),
+                        contentDescription = "Search Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             ) {}
             Text(
                 text = "Passwords",
@@ -464,7 +472,12 @@ fun Avatar(modifier: Modifier = Modifier, text: String) {
 }
 
 @Composable
-fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntry: () -> Unit, isDarkMode: Boolean = false) {
+fun PasswordItem(
+    modifier: Modifier = Modifier,
+    entry: LoginVaultEntry,
+    showEntry: () -> Unit,
+    isDarkMode: Boolean = false
+) {
     ListItem(
         modifier = modifier.clickable { showEntry() },
         headlineContent = { Text(entry.title) },
@@ -477,7 +490,7 @@ fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntr
         },
         trailingContent = {
             Icon(
-                imageVector = ImageVector.vectorResource(if (isDarkMode) R.drawable.moon_24_outlined else R.drawable.sun_24_outlined),
+                imageVector = ImageVector.vectorResource(R.drawable.ellipsis_horizontal_20_solid),
                 contentDescription = "Show details"
             )
         },
