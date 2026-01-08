@@ -75,7 +75,7 @@ fun PandoraApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = if (startPage == "settings") AppDestinations.SETTINGS.route else AppDestinations.PASSWORDS.route
+                startDestination = if (startPage == AppDestinations.SETTINGS.route) AppDestinations.SETTINGS.route else AppDestinations.PASSWORDS.route
             ) {
                 composable(AppDestinations.PASSWORDS.route) {
                     PasswordPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
@@ -102,6 +102,11 @@ enum class AppDestinations(
     SETTINGS("Settings", R.drawable.settings_24_outline, R.drawable.settings_24_filled, "settings");
     
     companion object {
+        /**
+         * Maps a navigation route string to its corresponding AppDestinations enum value.
+         * @param route The navigation route string, or null
+         * @return The matching AppDestinations, or PASSWORDS as the default if route is null or not found
+         */
         fun fromRoute(route: String?): AppDestinations {
             return entries.find { it.route == route } ?: PASSWORDS
         }

@@ -56,7 +56,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         val startPage = if (intent.component?.className == "$packageName.SettingsPage")
-            "settings" else "home"
+            "settings" else "passwords"
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
