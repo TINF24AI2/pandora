@@ -47,7 +47,7 @@ To get this project running on your local machine, follow these steps:
       required dependencies. This may take a few minutes.
 
 4. **Run the application:**
-    * Select an emulator or a physical Android device. (running Android 8 or later)
+    * Select an emulator or a physical Android device. (running Android 11 or later)
     * Click the **Run 'app'** button (▶️) in the toolbar.
 
 ## 🎓 Project Context
