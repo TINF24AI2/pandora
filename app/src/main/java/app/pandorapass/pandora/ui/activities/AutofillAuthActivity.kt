@@ -32,6 +32,7 @@ import app.pandorapass.pandora.PandoraApplication
 import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.logic.services.VaultService
+import app.pandorapass.pandora.logic.utils.ResponseBuilderHelper
 import app.pandorapass.pandora.ui.pages.LoginView
 import app.pandorapass.pandora.ui.pages.PandoraApp
 import app.pandorapass.pandora.ui.viewmodels.AppState
@@ -120,51 +121,18 @@ class AutofillAuthActivity : FragmentActivity() {
             listOf(Account("No logins found", "", ""))
         } ?: listOf(Account("No logins found", "", ""))
 
-        val responseBuilder = FillResponse.Builder()
-
-        for (account in accounts) {
-            // 1. Create Dropdown Presentation (Fallback)
-            val presentation = RemoteViews(packageName, android.R.layout.simple_list_item_1)
-            presentation.setTextViewText(android.R.id.text1, account.label)
-
-            // 2. Create Dataset
-            val datasetBuilder = Dataset.Builder(presentation)
-
-            // 3. Create Inline Presentation (Keyboard Strip)
-            if (inlineRequest != null) {
-                val inline = createInline(account.label, account.username)
-                if (inline != null) {
-                    datasetBuilder.setInlinePresentation(inline)
-                }
-            }
-
-            // 4. Set Values
-            usernameId?.let { datasetBuilder.setValue(it, AutofillValue.forText(account.username)) }
-            passwordId?.let { datasetBuilder.setValue(it, AutofillValue.forText(account.password)) }
-
-            responseBuilder.addDataset(datasetBuilder.build())
-        }
+        val response = ResponseBuilderHelper.buildResponse(
+            applicationContext,
+            accounts,
+            usernameId,
+            passwordId,
+            inlineRequest
+        )
 
         val resultIntent = Intent()
-        resultIntent.putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, responseBuilder.build())
+        resultIntent.putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, response)
         setResult(RESULT_OK, resultIntent)
         finish()
-    }
-
-    @SuppressLint("RestrictedApi")
-    private fun createInline(title: String, subtitle: String): InlinePresentation? {
-        val request = inlineRequest ?: return null
-        val styles = request.inlinePresentationSpecs.firstOrNull() ?: return null
-
-        // Placeholder intent (required by API but not used for direct filling)
-        val pIntent = PendingIntent.getActivity(this, 0, Intent(), PendingIntent.FLAG_IMMUTABLE)
-
-        val slice = InlineSuggestionUi.newContentBuilder(pIntent)
-            .setTitle(title)
-            .setSubtitle(subtitle)
-            .build()
-
-        return InlinePresentation(slice.slice, styles, false)
     }
 
     data class Account(val label: String, val username: String, val password: String)

@@ -78,9 +78,7 @@ class VaultViewModel(
                 vaultService.unlockWithPassword(password.toCharArray())
                 _appState.value = AppState.UNLOCKED
                 _error.value = null
-                if (callback != null) {
-                    callback()
-                }
+                callback?.invoke()
             } catch (e: Exception) {
                 _error.value = "Wrong password or decryption failed."
             }
@@ -93,9 +91,7 @@ class VaultViewModel(
                 vaultService.unlockWithKey(masterKey)
                 _appState.value = AppState.UNLOCKED
                 _error.value = null
-                if (callback != null) {
-                    callback()
-                }
+                callback?.invoke()
             } catch (e: Exception) {
                 _error.value = "Wrong password or decryption failed."
             }

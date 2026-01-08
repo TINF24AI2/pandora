@@ -1,5 +1,6 @@
 package app.pandorapass.pandora.logic.services
 
+//noinspection SuspiciousImport
 import android.R
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -29,7 +30,7 @@ class PandoraAutofillService : AutofillService() {
         cancellationSignal: CancellationSignal,
         callback: FillCallback
     ) {
-       val context = request.fillContexts.last()
+        val context = request.fillContexts.last()
         val vaultService = (application as PandoraApplication).vaultService
 
         val structure = context.structure
@@ -40,15 +41,12 @@ class PandoraAutofillService : AutofillService() {
             return
         }
 
-        // --- FIX 1: Robust Data Preparation ---
-        // 1. Filter out non-login entries
-        // 2. Ensure titles are valid (Fixes the "Blank Square")
-        // 3. Deduplicate based on title+username (Fixes the "Doubled Entries")
+        // If the vault is already unlocked, we can show the entries.
         if (VaultSession.isVaultUnlocked()) {
             val accounts = vaultService.entries.value.asSequence()
                 .filterIsInstance<LoginVaultEntry>()
                 .map { entry ->
-                    val displayTitle = if (entry.title.isBlank()) "Untitled" else entry.title
+                    val displayTitle = entry.title.ifBlank { "Untitled" }
                     AutofillAuthActivity.Account(
                         displayTitle,
                         entry.username,
@@ -136,9 +134,9 @@ class PandoraAutofillService : AutofillService() {
         val inlineRequest = request.inlineSuggestionsRequest ?: return null
         val styles = inlineRequest.inlinePresentationSpecs.firstOrNull() ?: return null
 
-        val pendingIndent =
+        val pendingIntent =
             PendingIntent.getActivity(this, text.hashCode(), Intent(), PendingIntent.FLAG_IMMUTABLE)
-        val slice = InlineSuggestionUi.newContentBuilder(pendingIndent)
+        val slice = InlineSuggestionUi.newContentBuilder(pendingIntent)
             .setTitle(text)
             .build()
 

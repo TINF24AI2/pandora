@@ -4,7 +4,7 @@ import android.app.assist.AssistStructure
 import android.view.autofill.AutofillId
 
 /**
- * Parses a structure (the view when opening entering an typable field)
+ * Parses a structure (the view when entering an typable field)
  */
 object StructureParser {
      data class ParsedStructure(
@@ -16,7 +16,7 @@ object StructureParser {
     )
 
     /**
-     * Parses the current structure (the view when opening entering an typable field) to look for
+     * Parses the current structure (the view when entering an typable field) to look for
      * relevant fields (fields that can be auto-completed).
      *
      * @param structure The structure
@@ -45,7 +45,7 @@ object StructureParser {
         }
 
         // If the view is a web view, we need to check the HTML info for any fields that look like something we can auto-complete.
-        // This works nowhere perfect, but we tried our best to cover as many cases as possible.
+        // This doesn't work perfectly, but we tried our best to cover as many cases as possible.
         val htmlInfo = node.htmlInfo
         if (htmlInfo != null && "input" == htmlInfo.tag) {
             val attributes = htmlInfo.attributes ?: return
