@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pandora">
         <activity
-            android:name=".ui.pages.MainActivity"
+            android:name="app.pandorapass.pandora.ui.activities.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Pandora">
             <intent-filter>
@@ -21,6 +21,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <activity
+            android:name=".ui.activities.AutofillAuthActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Pandora" />
+
+        <activity-alias
+            android:name="app.pandorapass.pandora.SettingsAlias"
+            android:targetActivity="app.pandorapass.pandora.ui.activities.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity-alias>
+
+        <service
+            android:name="app.pandorapass.pandora.logic.services.PandoraAutofillService"
+            android:label="Pandora"
+            android:permission="android.permission.BIND_AUTOFILL_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.autofill.AutofillService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.autofill"
+                android:resource="@xml/service_configuration" />
+        </service>
+    </application>
 </manifest>

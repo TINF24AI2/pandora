@@ -20,10 +20,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 
 @Composable
-fun PandoraApp(viewModel: TestVaultViewModel, settingsViewModel: SettingsViewModel) {
+fun PandoraApp(
+    viewModel: VaultViewModel,
+    settingsViewModel: SettingsViewModel,
+) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -48,8 +51,8 @@ fun PandoraApp(viewModel: TestVaultViewModel, settingsViewModel: SettingsViewMod
                     colors = myNavigationSuiteItemColors
                 )
             }
-        },
-        content = {
+        }
+    ) {
             Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
                 when (currentDestination) {
                     AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
@@ -57,8 +60,8 @@ fun PandoraApp(viewModel: TestVaultViewModel, settingsViewModel: SettingsViewMod
                     AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
                 }
             }
-        }
-    )
+
+    }
 }
 
 enum class AppDestinations(
