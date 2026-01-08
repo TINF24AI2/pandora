@@ -12,7 +12,7 @@ object LeakChecker {
     private val client = OkHttpClient()
 
     /**
-     * @return Die Anzahl der Leaks
+     * @return the amount of leaks that the password was found in.
      */
     suspend fun checkPassword(password: String): Int = withContext(Dispatchers.IO) {
         val fullHash = sha1(password)
@@ -21,7 +21,7 @@ object LeakChecker {
 
         val request = Request.Builder()
             .url("https://api.pwnedpasswords.com/range/$prefix")
-            .header("User-Agent", "Android-App-LeakChecker")
+            .header("User-Agent", "Pandora-LeakChecker")
             .build()
 
         client.newCall(request).execute().use { response ->
