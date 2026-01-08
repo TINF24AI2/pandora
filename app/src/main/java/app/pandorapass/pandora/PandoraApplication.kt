@@ -1,11 +1,13 @@
 package app.pandorapass.pandora
 
 import android.app.Application
+import androidx.lifecycle.ProcessLifecycleOwner
+import app.pandorapass.pandora.data.SettingsDataStore
+import app.pandorapass.pandora.logic.VaultLifecycleObserver
 import app.pandorapass.pandora.logic.models.BiometricTokenStorage
 import app.pandorapass.pandora.logic.services.BiometricCryptoHelper
 import app.pandorapass.pandora.logic.services.CryptoService
 import app.pandorapass.pandora.logic.services.impl.CryptoServiceImpl
-import app.pandorapass.pandora.data.SettingsDataStore
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -29,6 +31,8 @@ class PandoraApplication : Application() {
         biometricTokenStorage = BiometricTokenStorage(this)
 
         cryptoService = CryptoServiceImpl()
+
+        ProcessLifecycleOwner.get().lifecycle.addObserver(VaultLifecycleObserver(this))
     }
 
     suspend fun triggerLockEvent() {
