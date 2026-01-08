@@ -48,6 +48,7 @@ import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import java.util.Date
 import android.content.Context
+import androidx.compose.foundation.layout.size
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
@@ -165,6 +166,7 @@ fun CopyableTextField(
         )
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CopyablePasswordField(
@@ -188,11 +190,18 @@ fun CopyablePasswordField(
             trailingIcon = {
                 Row {
                     IconButton(onClick = { visible = !visible }) {
-                        if (visible) Icon(imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined), contentDescription = "")
-                        else Icon(ImageVector.vectorResource(R.drawable.eye_24_outlined), contentDescription = "")
+                        if (visible) Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined),
+                            contentDescription = ""
+                        )
+                        else Icon(
+                            ImageVector.vectorResource(R.drawable.eye_24_outlined),
+                            contentDescription = ""
+                        )
                     }
                     IconButton(onClick = {
-                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clipboardManager =
+                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText(label, text)
                         clipboardManager.setPrimaryClip(clip)
                         // Optionally add a Toast message here
@@ -346,14 +355,28 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
                             if (!showPassword) PasswordVisualTransformation()
                             else VisualTransformation.None,
                         trailingIcon = {
-                            IconButton(onClick = { showPassword = !showPassword }) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(
-                                        if (showPassword) R.drawable.eye_slash_24_outlined
-                                        else R.drawable.eye_24_outlined
-                                    ),
-                                    contentDescription = null
-                                )
+                            Row(
+                                modifier = Modifier.padding(end = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(onClick = {
+                                    newPassword = generatePassword(true, true, true, true, 16.0F)
+                                }) {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.arrow_path),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                IconButton(onClick = { showPassword = !showPassword }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(
+                                            if (showPassword) R.drawable.eye_slash_24_outlined
+                                            else R.drawable.eye_24_outlined
+                                        ),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         },
                         singleLine = true
@@ -393,13 +416,13 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
                         modifier = width,
                         enabled = (newUsername.isNotBlank() && newPassword.isNotBlank()),
                         onClick = {
-                                viewModel.addLoginEntry(
-                                    newTitle,
-                                    newUsername,
-                                    newPassword,
-                                    newNotes,
-                                    (urls + newURL).filter { it.isNotBlank() }.distinct()
-                                )
+                            viewModel.addLoginEntry(
+                                newTitle,
+                                newUsername,
+                                newPassword,
+                                newNotes,
+                                (urls + newURL).filter { it.isNotBlank() }.distinct()
+                            )
                             onDismiss()
                         }) {
                         Text("Add Password")
