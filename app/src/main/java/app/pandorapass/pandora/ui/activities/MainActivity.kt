@@ -22,11 +22,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import app.pandorapass.pandora.PandoraApplication
 import app.pandorapass.pandora.logic.models.BiometricTokenStorage
-import app.pandorapass.pandora.logic.workers.AutoLockWorker
 import app.pandorapass.pandora.ui.pages.LoginView
 import app.pandorapass.pandora.ui.pages.PandoraApp
 import app.pandorapass.pandora.ui.theme.PandoraTheme
@@ -35,9 +32,7 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModelFactory
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 class MainActivity : FragmentActivity() {
 
@@ -121,48 +116,9 @@ class MainActivity : FragmentActivity() {
 
     override fun onStop() {
         super.onStop()
-        scheduleAutoLock()
     }
 
     override fun onStart() {
         super.onStart()
-        cancelAutoLock()
-    }
-
-    private fun scheduleAutoLock() {
-        val workManager = WorkManager.getInstance(applicationContext)
-
-        lifecycleScope.launch {
-            val currentAppState = vaultViewModel.appState.value
-            if (currentAppState == AppState.LOCKED) {
-                return@launch // State is already locked, do nothing.
-            }
-
-            val timeoutValue = settingsViewModel.autoLockTimeout.first()
-            if (timeoutValue == -1) {
-                return@launch // User selected "Never", so do nothing.
-            }
-            // Stop further execution for the "Instant" case
-            if (timeoutValue == 0) {
-                vaultViewModel.lockVault()
-                return@launch
-            }
-
-            if (timeoutValue > 0) {
-                val autoLockWorkRequest = OneTimeWorkRequestBuilder<AutoLockWorker>()
-                    .setInitialDelay(timeoutValue.toLong(), TimeUnit.SECONDS)
-                    .build()
-
-                workManager.enqueueUniqueWork(
-                    AutoLockWorker.Companion.WORK_NAME,
-                    ExistingWorkPolicy.REPLACE, // Replace any old timer
-                    autoLockWorkRequest
-                )
-            }
-        }
-    }
-
-    private fun cancelAutoLock() {
-        WorkManager.getInstance(applicationContext).cancelUniqueWork(AutoLockWorker.Companion.WORK_NAME)
     }
 }
