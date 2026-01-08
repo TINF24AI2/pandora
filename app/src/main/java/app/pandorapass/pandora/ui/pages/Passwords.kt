@@ -2,6 +2,7 @@ package app.pandorapass.pandora.ui.pages
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,14 +13,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -37,6 +42,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -68,7 +75,7 @@ fun PasswordPage(
     var addPassword by remember { mutableStateOf(false) }
     var showPasswordEntry by remember { mutableStateOf(false) }
     var id by remember { mutableStateOf("") }
-
+    val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
@@ -86,42 +93,53 @@ fun PasswordPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SearchBar(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = query,
-                        onQueryChange = {
-                            viewModel.updateSearchQuery(it)
-                        },
-                        placeholder = { Text("Search Passwords") },
-                        onSearch = {},
-                        expanded = false,
-                        onExpandedChange = {}
-                    )
+                query = query,
+                onQueryChange = {
+                    viewModel.updateSearchQuery(it)
                 },
-                expanded = false,
-                onExpandedChange = {}
+                onSearch = {},
+                active = false,
+                onActiveChange = {},
+                placeholder = { Text("Search your passwords") },
+                leadingIcon = { ImageVector.vectorResource(if (isDarkMode) R.drawable.moon_24_outlined else R.drawable.sun_24_outlined) }
             ) {}
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+            Text(
+                text = "Passwords",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
-                items(
-                    items = filteredPasswords
-                ) { entry ->
-                    PasswordItem(
-                        entry = entry,
-                        showEntry = {
-                            showPasswordEntry = true
-                            id = entry.id
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    items(
+                        items = filteredPasswords
+                    ) { entry ->
+                        PasswordItem(
+                            entry = entry,
+                            showEntry = {
+                                showPasswordEntry = true
+                                id = entry.id
+                            },
+                            isDarkMode = isDarkMode
+                        )
+                        if (filteredPasswords.last() != entry) {
+                            Divider(modifier = Modifier.padding(horizontal = 16.dp))
                         }
-                    )
+                    }
                 }
             }
         }
@@ -434,18 +452,37 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntry: () -> Unit) {
-    Card(
+fun Avatar(modifier: Modifier = Modifier, text: String) {
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { showEntry() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            Text(entry.title)
-            //Text(entry.username)
-        }
+        Text(text, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
+}
+
+@Composable
+fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntry: () -> Unit, isDarkMode: Boolean = false) {
+    ListItem(
+        modifier = modifier.clickable { showEntry() },
+        headlineContent = { Text(entry.title) },
+        supportingContent = { Text(entry.username) },
+        leadingContent = {
+            Avatar(
+                modifier = Modifier.size(40.dp),
+                text = if (entry.title.isNotEmpty()) entry.title.first().toString() else ""
+            )
+        },
+        trailingContent = {
+            Icon(
+                imageVector = ImageVector.vectorResource(if (isDarkMode) R.drawable.moon_24_outlined else R.drawable.sun_24_outlined),
+                contentDescription = "Show details"
+            )
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
+        )
+    )
 }
