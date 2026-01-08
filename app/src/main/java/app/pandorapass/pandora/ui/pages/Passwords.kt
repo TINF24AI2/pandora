@@ -49,8 +49,9 @@ import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import java.util.Date
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.logic.utils.LeakChecker
@@ -170,6 +171,7 @@ fun CopyableTextField(
         )
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CopyablePasswordField(
@@ -192,22 +194,30 @@ fun CopyablePasswordField(
             readOnly = true,
             visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                Row {
+                Row(
+                    Modifier.offset(x = (-8).dp),//to account for smaller IconButtons
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton({
                         scope.launch {
                             val leakCount = LeakChecker.checkPassword(text)
-                            if (leakCount == -1) Toast.makeText(context, "An error occured. Try again later", Toast.LENGTH_SHORT).show()
-                            else Toast.makeText(context, "Your Password was found in $leakCount leaks", Toast.LENGTH_SHORT).show()
+                            if (leakCount == -1) Toast.makeText(context, "An error occurred. Try again later", Toast.LENGTH_LONG).show()
+                            else Toast.makeText(context, "Your password was found in $leakCount leaks", Toast.LENGTH_LONG).show()
                         }
-                    }) {
+                        },
+                        modifier = Modifier.size(32.dp)) {
                         Icon(imageVector = ImageVector.vectorResource(R.drawable.shield_check_24_outine), contentDescription = "")
                     }
-                    IconButton(onClick = { visible = !visible }) {
+                    IconButton(
+                        onClick = { visible = !visible },
+                        modifier = Modifier.size(32.dp))
+                    {
                         if (visible) Icon(imageVector = ImageVector.vectorResource(R.drawable.eye_slash_24_outlined), contentDescription = "")
                         else Icon(ImageVector.vectorResource(R.drawable.eye_24_outlined), contentDescription = "")
                     }
                     IconButton(onClick = {
-                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clipboardManager =
+                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText(label, text)
                         clipboardManager.setPrimaryClip(clip)
                         // Optionally add a Toast message here
@@ -232,7 +242,8 @@ fun CopyablePasswordField(
                                 clearClipboardWorkRequest
                             )
                         }
-                    }) {
+                        },
+                        modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = ImageVector.vectorResource(
                                 R.drawable.square_2_stack_24_outlined
@@ -422,13 +433,13 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
                         modifier = width,
                         enabled = (newUsername.isNotBlank() && newPassword.isNotBlank()),
                         onClick = {
-                                viewModel.addLoginEntry(
-                                    newTitle,
-                                    newUsername,
-                                    newPassword,
-                                    newNotes,
-                                    (urls + newURL).filter { it.isNotBlank() }.distinct()
-                                )
+                            viewModel.addLoginEntry(
+                                newTitle,
+                                newUsername,
+                                newPassword,
+                                newNotes,
+                                (urls + newURL).filter { it.isNotBlank() }.distinct()
+                            )
                             onDismiss()
                         }) {
                         Text("Add Password")
