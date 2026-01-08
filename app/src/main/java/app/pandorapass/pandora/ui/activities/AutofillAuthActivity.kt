@@ -35,8 +35,8 @@ import app.pandorapass.pandora.logic.services.VaultService
 import app.pandorapass.pandora.ui.pages.LoginView
 import app.pandorapass.pandora.ui.pages.PandoraApp
 import app.pandorapass.pandora.ui.viewmodels.AppState
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModel
-import app.pandorapass.pandora.ui.viewmodels.TestVaultViewModelFactory
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
+import app.pandorapass.pandora.ui.viewmodels.VaultViewModelFactory
 
 class AutofillAuthActivity : FragmentActivity() {
 
@@ -62,8 +62,8 @@ class AutofillAuthActivity : FragmentActivity() {
         vaultService = (application as PandoraApplication).vaultService
 
         setContent {
-            val factory = TestVaultViewModelFactory(vaultService!!)
-            val viewModel: TestVaultViewModel = viewModel(factory = factory)
+            val factory = VaultViewModelFactory(vaultService!!)
+            val viewModel: VaultViewModel = viewModel(factory = factory)
 
             val context = LocalContext.current
             val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper

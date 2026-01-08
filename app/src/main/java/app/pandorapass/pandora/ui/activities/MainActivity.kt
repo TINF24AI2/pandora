@@ -1,7 +1,6 @@
-package app.pandorapass.pandora.ui.pages
+package app.pandorapass.pandora.ui.activities
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -19,12 +18,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.pandorapass.pandora.PandoraApplication
 import app.pandorapass.pandora.logic.models.BiometricTokenStorage
+import app.pandorapass.pandora.logic.workers.AutoLockWorker
 import app.pandorapass.pandora.ui.pages.LoginView
 import app.pandorapass.pandora.ui.pages.PandoraApp
 import app.pandorapass.pandora.ui.theme.PandoraTheme
@@ -33,10 +35,9 @@ import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModelFactory
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModelFactory
-import app.pandorapass.pandora.logic.workers.AutoLockWorker
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.flow.first
 
 class MainActivity : FragmentActivity() {
 
@@ -58,7 +59,7 @@ class MainActivity : FragmentActivity() {
             "settings" else "home"
 
         lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 (application as PandoraApplication).lockEvent.collect {
                     vaultViewModel.lockVault()
                 }
@@ -71,7 +72,8 @@ class MainActivity : FragmentActivity() {
 
             PandoraTheme(darkTheme = isDarkMode) {
                 val context = LocalContext.current
-                val biometricCryptoHelper = (application as PandoraApplication).biometricCryptoHelper
+                val biometricCryptoHelper =
+                    (application as PandoraApplication).biometricCryptoHelper
 
                 val viewModel = vaultViewModel
                 val appState by viewModel.appState.collectAsState()
@@ -155,8 +157,8 @@ class MainActivity : FragmentActivity() {
                     .build()
 
                 workManager.enqueueUniqueWork(
-                    AutoLockWorker.WORK_NAME,
-                    androidx.work.ExistingWorkPolicy.REPLACE, // Replace any old timer
+                    AutoLockWorker.Companion.WORK_NAME,
+                    ExistingWorkPolicy.REPLACE, // Replace any old timer
                     autoLockWorkRequest
                 )
             }
@@ -164,6 +166,6 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun cancelAutoLock() {
-        WorkManager.getInstance(applicationContext).cancelUniqueWork(AutoLockWorker.WORK_NAME)
+        WorkManager.getInstance(applicationContext).cancelUniqueWork(AutoLockWorker.Companion.WORK_NAME)
     }
 }
