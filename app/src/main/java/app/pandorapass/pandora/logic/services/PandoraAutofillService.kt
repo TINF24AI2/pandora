@@ -23,6 +23,7 @@ import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.logic.utils.ResponseBuilderHelper
 import app.pandorapass.pandora.logic.utils.StructureParser.parseStructure
 import app.pandorapass.pandora.ui.activities.AutofillAuthActivity
+import kotlinx.coroutines.runBlocking
 
 class PandoraAutofillService : AutofillService() {
     override fun onFillRequest(
@@ -37,6 +38,15 @@ class PandoraAutofillService : AutofillService() {
         val parsed = parseStructure(structure)
 
         if (parsed.usernameId == null && parsed.passwordId == null) {
+            callback.onSuccess(null)
+            return
+        }
+
+        val isVaultInitialized = runBlocking {
+            vaultService.isVaultInitialized()
+        }
+
+        if (!isVaultInitialized) {
             callback.onSuccess(null)
             return
         }

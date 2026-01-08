@@ -1,26 +1,16 @@
 package app.pandorapass.pandora.ui.activities
 
-import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
-import android.service.autofill.Dataset
-import android.service.autofill.FillResponse
-import android.service.autofill.InlinePresentation
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
-import android.view.autofill.AutofillValue
 import android.view.inputmethod.InlineSuggestionsRequest
-import android.widget.RemoteViews
 import androidx.activity.compose.setContent
-import androidx.autofill.inline.v1.InlineSuggestionUi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -34,7 +24,6 @@ import app.pandorapass.pandora.logic.models.LoginVaultEntry
 import app.pandorapass.pandora.logic.services.VaultService
 import app.pandorapass.pandora.logic.utils.ResponseBuilderHelper
 import app.pandorapass.pandora.ui.pages.LoginView
-import app.pandorapass.pandora.ui.pages.PandoraApp
 import app.pandorapass.pandora.ui.viewmodels.AppState
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModel
 import app.pandorapass.pandora.ui.viewmodels.VaultViewModelFactory
@@ -102,6 +91,7 @@ class AutofillAuthActivity : FragmentActivity() {
             }
 
             LoginView(
+                firstTimeLogin = false,
                 onSubmit = {
                     viewModel.unlockVaultWithPassword(it) { onSuccess() }
                 }
