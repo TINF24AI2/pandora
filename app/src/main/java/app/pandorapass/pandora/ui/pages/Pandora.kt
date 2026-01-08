@@ -2,7 +2,6 @@ package app.pandorapass.pandora.ui.pages
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -11,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,12 +35,7 @@ fun PandoraApp(
     val currentRoute = navBackStackEntry?.destination?.route
     
     // Map routes to AppDestinations
-    val currentDestination = when (currentRoute) {
-        "passwords" -> AppDestinations.PASSWORDS
-        "generate" -> AppDestinations.GENERATE
-        "settings" -> AppDestinations.SETTINGS
-        else -> AppDestinations.PASSWORDS
-    }
+    val currentDestination = AppDestinations.fromRoute(currentRoute)
     
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -64,12 +57,7 @@ fun PandoraApp(
                     label = { Text(destination.label) },
                     selected = destination == currentDestination,
                     onClick = {
-                        val route = when (destination) {
-                            AppDestinations.PASSWORDS -> "passwords"
-                            AppDestinations.GENERATE -> "generate"
-                            AppDestinations.SETTINGS -> "settings"
-                        }
-                        navController.navigate(route) {
+                        navController.navigate(destination.route) {
                             // Avoid multiple copies of the same destination when reselecting the same item
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
@@ -84,7 +72,7 @@ fun PandoraApp(
             }
         }
     ) {
-        Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = if (startPage == "settings") "settings" else "passwords"
@@ -106,9 +94,16 @@ fun PandoraApp(
 enum class AppDestinations(
     val label: String,
     val iconRes: Int,
-    val selectedIconRes: Int
+    val selectedIconRes: Int,
+    val route: String
 ) {
-    PASSWORDS("Passwords", R.drawable.folder_24_outlined, R.drawable.folder_24_filled),
-    GENERATE("Generate", R.drawable.sparkles_24_outline, R.drawable.sparkles_24_filled),
-    SETTINGS("Settings", R.drawable.settings_24_outline, R.drawable.settings_24_filled),
+    PASSWORDS("Passwords", R.drawable.folder_24_outlined, R.drawable.folder_24_filled, "passwords"),
+    GENERATE("Generate", R.drawable.sparkles_24_outline, R.drawable.sparkles_24_filled, "generate"),
+    SETTINGS("Settings", R.drawable.settings_24_outline, R.drawable.settings_24_filled, "settings");
+    
+    companion object {
+        fun fromRoute(route: String?): AppDestinations {
+            return entries.find { it.route == route } ?: PASSWORDS
+        }
+    }
  }
