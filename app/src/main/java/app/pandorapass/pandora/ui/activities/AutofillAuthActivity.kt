@@ -86,8 +86,6 @@ class AutofillAuthActivity : FragmentActivity() {
                         }
                     }
                 )
-
-                return@setContent
             }
 
             if (error != null) {
