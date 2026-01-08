@@ -106,10 +106,12 @@ class MainActivity : FragmentActivity() {
                     AppState.LOADING -> CircularProgressIndicator()
 
                     AppState.SETUP -> LoginView(
+                        firstTimeLogin = true,
                         onSubmit = { viewModel.createVault(it) }
                     )
 
                     AppState.LOCKED -> LoginView(
+                        firstTimeLogin = false,
                         onSubmit = { viewModel.unlockVaultWithPassword(it) }
                     )
 

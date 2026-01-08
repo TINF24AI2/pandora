@@ -29,7 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoginView(onSubmit: (pass: String) -> Unit) {
+fun LoginView(firstTimeLogin: Boolean, onSubmit: (pass: String) -> Unit) {
     var password by remember { mutableStateOf("") }
 
     Scaffold(
@@ -50,7 +50,7 @@ fun LoginView(onSubmit: (pass: String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    text = "Welcome!",
+                    text = if (firstTimeLogin) "Welcome!" else "Welcome back!",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -80,7 +80,7 @@ fun LoginView(onSubmit: (pass: String) -> Unit) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Login",
+                        text = if (firstTimeLogin) "Create Vault" else "Login",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         )
