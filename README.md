@@ -22,7 +22,8 @@ The application's settings screen demonstrates several core features of the app:
     * **Clipboard Management:** Options to automatically clear the clipboard after a set time to
       prevent credential leakage.
     * **Android Autofill Integration**: Ability to automatically fill in your username and password
-      in a login form using the Android Autofill API.
+      in a login form using the Android Autofill API. Just select Pandora as your preferred Autofill
+      service in the settings and you are good to go.
 * **User-Friendly:**
     * **Intuitive Settings:** A well-organized settings page to easily manage app preferences.
 
