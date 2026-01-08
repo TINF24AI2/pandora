@@ -59,6 +59,13 @@ import app.pandorapass.pandora.logic.workers.ClipboardClearWorker
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +80,7 @@ fun PasswordPage(
     var addPassword by remember { mutableStateOf(false) }
     var showPasswordEntry by remember { mutableStateOf(false) }
     var id by remember { mutableStateOf("") }
-
+    val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
 
     Scaffold(modifier = modifier, floatingActionButton = {
         FloatingActionButton(
@@ -98,35 +105,54 @@ fun PasswordPage(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = query,
-                        onQueryChange = {
-                            viewModel.updateSearchQuery(it)
-                        },
-                        placeholder = { Text("Search Passwords") },
-                        onSearch = {},
-                        expanded = false,
-                        onExpandedChange = {}
-                    )
+                query = query,
+                onQueryChange = {
+                    viewModel.updateSearchQuery(it)
                 },
-                expanded = false,
-                onExpandedChange = {}
-            ) {}
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(
-                    items = filteredPasswords
-                ) { entry ->
-                    PasswordItem(
-                        entry = entry,
-                        showEntry = {
-                            showPasswordEntry = true
-                            id = entry.id
-                        }
+                onSearch = {},
+                active = false,
+                onActiveChange = {},
+                placeholder = { Text("Search your passwords") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(
+                            R.drawable.search_24_outline
+                        ),
+                        contentDescription = "Search Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            ) {}
+            Text(
+                text = "Passwords",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    items(
+                        items = filteredPasswords
+                    ) { entry ->
+                        PasswordItem(
+                            entry = entry,
+                            showEntry = {
+                                showPasswordEntry = true
+                                id = entry.id
+                            },
+                            isDarkMode = isDarkMode
+                        )
+                        if (filteredPasswords.last() != entry) {
+                            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                        }
+                    }
                 }
             }
         }
@@ -451,18 +477,42 @@ fun AddPassword(viewModel: VaultViewModel, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun PasswordItem(modifier: Modifier = Modifier, entry: LoginVaultEntry, showEntry: () -> Unit) {
-    Card(
+fun Avatar(modifier: Modifier = Modifier, text: String) {
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { showEntry() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            Text(entry.title)
-            //Text(entry.username)
-        }
+        Text(text, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
+}
+
+@Composable
+fun PasswordItem(
+    modifier: Modifier = Modifier,
+    entry: LoginVaultEntry,
+    showEntry: () -> Unit,
+    isDarkMode: Boolean = false
+) {
+   ListItem(
+        modifier = modifier.clickable { showEntry() },
+        headlineContent = { Text(entry.title) },
+        supportingContent = { Text(entry.username) },
+        leadingContent = {
+            Avatar(
+                modifier = Modifier.size(40.dp),
+                text = if (entry.title.isNotEmpty()) entry.title.first().toString() else ""
+            )
+        },
+        trailingContent = {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ellipsis_horizontal_20_solid),
+                contentDescription = "Show details"
+            )
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
+        )
+    )
 }
