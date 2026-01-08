@@ -152,7 +152,7 @@ class BiometricCryptoHelper {
         } catch (e: KeyPermanentlyInvalidatedException) {
             Toast.makeText(
                 activity,
-                "Seems like you removed your fingerprint. Please log in with password",
+                "Seems like you added or removed a fingerprint. Please login using your password and re-enable biometric login.",
                 Toast.LENGTH_LONG
             ).show()
             application.biometricTokenStorage.clearToken()
