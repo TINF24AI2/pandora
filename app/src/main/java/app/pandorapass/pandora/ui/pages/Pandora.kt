@@ -13,15 +13,13 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.pandorapass.pandora.R
 import app.pandorapass.pandora.ui.viewmodels.SettingsViewModel
@@ -34,7 +32,18 @@ fun PandoraApp(
     settingsViewModel: SettingsViewModel,
     navController: NavHostController = rememberNavController()
 ) {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.PASSWORDS) }
+    // Get current route from NavController's back stack
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    
+    // Map routes to AppDestinations
+    val currentDestination = when (currentRoute) {
+        "passwords" -> AppDestinations.PASSWORDS
+        "generate" -> AppDestinations.GENERATE
+        "settings" -> AppDestinations.SETTINGS
+        else -> AppDestinations.PASSWORDS
+    }
+    
     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
             unselectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -44,45 +53,53 @@ fun PandoraApp(
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            AppDestinations.entries.forEach {
+            AppDestinations.entries.forEach { destination ->
                 item(
                     icon = {
                         Icon(
-                            ImageVector.vectorResource(if (it == currentDestination) it.selectedIconRes else it.iconRes),
-                            contentDescription = it.label
+                            ImageVector.vectorResource(if (destination == currentDestination) destination.selectedIconRes else destination.iconRes),
+                            contentDescription = destination.label
                         )
                     },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it },
+                    label = { Text(destination.label) },
+                    selected = destination == currentDestination,
+                    onClick = {
+                        val route = when (destination) {
+                            AppDestinations.PASSWORDS -> "passwords"
+                            AppDestinations.GENERATE -> "generate"
+                            AppDestinations.SETTINGS -> "settings"
+                        }
+                        navController.navigate(route) {
+                            // Avoid multiple copies of the same destination when reselecting the same item
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            // Restore state when reselecting a previously selected item
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     colors = myNavigationSuiteItemColors
                 )
             }
         }
     ) {
-            NavHost(navController = navController, startDestination = "home") {
-                composable("home") {  PasswordPage(Modifier.safeContentPadding(), viewModel, settingsViewModel) }
-                composable("settings") { SettingsPage(Modifier.safeContentPadding(), viewModel, settingsViewModel) }
-                // there are some routes missing here but as long as we don't need to navigate there manually, we can omit them here
-            }
-
-            LaunchedEffect(Unit) {
-                if (startPage == "settings") {
-                    navController.navigate("settings") {
-                        popUpTo("home")
-                    }
+        Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = if (startPage == "settings") "settings" else "passwords"
+            ) {
+                composable("passwords") {
+                    PasswordPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
+                }
+                composable("generate") {
+                    GeneratePage(Modifier.padding(innerPadding), settingsViewModel)
+                }
+                composable("settings") {
+                    SettingsPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
                 }
             }
-
-
-            Scaffold(modifier = Modifier.fillMaxSize().safeContentPadding()) { innerPadding ->
-                when (currentDestination) {
-                    AppDestinations.PASSWORDS -> PasswordPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
-                    AppDestinations.GENERATE -> GeneratePage(Modifier.padding(innerPadding), settingsViewModel)
-                    AppDestinations.SETTINGS -> SettingsPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
-                }
-            }
-
+        }
     }
 }
 
