@@ -75,15 +75,15 @@ fun PandoraApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = if (startPage == "settings") "settings" else "passwords"
+                startDestination = if (startPage == "settings") AppDestinations.SETTINGS.route else AppDestinations.PASSWORDS.route
             ) {
-                composable("passwords") {
+                composable(AppDestinations.PASSWORDS.route) {
                     PasswordPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
                 }
-                composable("generate") {
+                composable(AppDestinations.GENERATE.route) {
                     GeneratePage(Modifier.padding(innerPadding), settingsViewModel)
                 }
-                composable("settings") {
+                composable(AppDestinations.SETTINGS.route) {
                     SettingsPage(Modifier.padding(innerPadding), viewModel, settingsViewModel)
                 }
             }
